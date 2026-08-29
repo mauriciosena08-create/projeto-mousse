@@ -1,11 +1,24 @@
 import type { Metadata } from "next";
 import { Gothic_A1 } from "next/font/google";
+
 import "./globals.css";
+
+import Header from "@/components/Header";
 
 const GothicA1 = Gothic_A1({
   variable: "--font-gothic-a1",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
+  weight: [
+    "100",
+    "200",
+    "300",
+    "400",
+    "500",
+    "600",
+    "700",
+    "800",
+    "900",
+  ],
 });
 
 export const metadata: Metadata = {
@@ -19,7 +32,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${GothicA1.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }
