@@ -1,4 +1,5 @@
 import Product from "@/components/Product";
+import Footer from "@/components/Footer";
 
 interface Props {
     title: string;
@@ -30,14 +31,17 @@ export default function Home() {
   ]
 
   return (
-    <main>
-      <h1 className="text-white font-bold text-2xl my-5 ml-5">Conheça nossos doces!</h1>
+    <>
+      <main>
+        <h1 className="text-white font-bold text-2xl my-5 ml-5">Conheça nossos doces!</h1>
 
-      <section className="space-y-5 px-5">
-        { doces.map((item, key) => (
-          <Product key={key} title={item.title} description={item.description} />
-        )) }
-      </section>
-    </main>
+        <section className="space-y-5 px-5">
+          { doces.map((item, key) => (
+            <Product key={key} title={item.title} description={item.description} />
+          )) }
+        </section>
+      </main>
+      <Footer />
+    </>
   );
 }
