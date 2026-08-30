@@ -4,6 +4,7 @@ import { Gothic_A1 } from "next/font/google";
 import "./globals.css";
 
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const GothicA1 = Gothic_A1({
   variable: "--font-gothic-a1",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <Header />
         {children}
+        <Footer />
       </body>
     </html>
   );
