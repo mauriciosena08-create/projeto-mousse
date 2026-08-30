@@ -2,12 +2,41 @@
 
 :root {
   --background: #111217;
-  --foreground: #171717;
+  --cinza: #D9D9D9;
+  --cinza-hover: #878484;
   --roxo: #211824;
+  --roxo-claro: #342442;
 }
 
 .bg-roxo{
   background: var(--roxo);
+}
+
+.bg-cinza{
+  background: var(--cinza);
+}
+
+.bg-cinza-hover{
+  background: var(--cinza);
+}
+
+.btn:hover {
+  background: var(--cinza-hover);
+}
+
+.bg-roxo-claro{
+  background: var(--roxo-claro);
+}
+
+input {
+  background: var(--cinza);
+  border-radius: .6em;
+  padding: .4em 1em;
+  border: none;
+  color: black;
+}
+input::placeholder {
+  color: rgb(70, 68, 68);
 }
 
 .button{
@@ -19,7 +48,12 @@
   cursor: pointer;
 }
 
+main {
+  flex: 1;
+}
+
 body {
+  min-height: 100dvh;
   background: var(--background);
   color: var(--foreground);
   font-family: "Gothic A1", serif;
