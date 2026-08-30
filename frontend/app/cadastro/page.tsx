@@ -1,6 +1,6 @@
 export default function Cadastro() {
     return (
-        <main className="text-white">
+        <>
             <h1 className="font-bold text-center text-2xl my-10">Cadastro</h1>
             <section className="space-y-5 flex flex-col items-center my-10">
                 <article>
@@ -25,6 +25,6 @@ export default function Cadastro() {
                 </article>
                 <button className="btn bg-cinza text-black font-semibold px-20 py-3 rounded-2xl cursor-pointer transition-colors">Cadastrar</button>
             </section>
-        </main>
+        </>
     )
 }

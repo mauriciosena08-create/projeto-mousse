@@ -6,9 +6,10 @@ import { Plus, Minus } from "lucide-react";
 interface Props {
     title: string;
     description: string;
+    btnAdd?: boolean;
 }
 
-export default function Product({ title, description }: Props) {
+export default function Product({ title, description, btnAdd }: Props) {
     const [quant, setQuant] = useState(1);
 
     function lessQuant() {
@@ -74,6 +75,12 @@ export default function Product({ title, description }: Props) {
 
                     </div>
                 </div>
+
+                { btnAdd === true && (
+                    <button>
+                        hiii
+                    </button>
+                )}
             </div>
         </article>
     );
