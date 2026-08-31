@@ -6,7 +6,7 @@ const pedidos = ["Mousse", "Bolo no pote", "Mousse", "Bolo no pote"];
 
 export default function Admin() {
   return (
-    <>
+    <FigmaShell active="user">
       <div className={`${figmaStyles.adminContent} h-full mx-auto overflow-auto`}>
         <div className={figmaStyles.profileHead}><FigmaUserIcon /><span>Admin.</span></div>
         <div className={figmaStyles.adminStats}>
@@ -21,6 +21,6 @@ export default function Admin() {
         </FigmaCard>
         <button className={`${figmaStyles.button} mt-5`}>Sair</button>
       </div>
-    </>
+    </FigmaShell>
   );
 }

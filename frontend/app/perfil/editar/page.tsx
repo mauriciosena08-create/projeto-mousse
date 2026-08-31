@@ -11,7 +11,7 @@ const fields = [
 
 export default function EditarPerfil() {
   return (
-    <>
+    <FigmaShell active="user">
       <div className={`${figmaStyles.page} h-full mx-auto overflow-auto`}>
         <h1 className={figmaStyles.title}>Perfil</h1>
         <div className={`${figmaStyles.card} text-center mb-8`}>
@@ -29,6 +29,6 @@ export default function EditarPerfil() {
         </div>
         <button className={`${figmaStyles.button} mt-28`}>Salvar alterações</button>
       </div>
-    </>
+    </FigmaShell>
   );
 }
