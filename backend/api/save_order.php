@@ -1,55 +1,64 @@
 <?php
-// Conectamos com o banco de dados carregando o arquivo database.php
 require_once __DIR__ . '/database.php';
 
-// Pegamos as informações enviadas pelo aplicativo/site (em formato JSON)
-$dadosRecebidos = file_get_contents("php://input");
-$pedido = json_decode($dadosRecebidos, true);
+$dados = json_decode(file_get_contents("php://input"), true);
 
-//  Guardamos o ID do cliente e o ID do produto em variáveis simples
-$usuario_id = $pedido['usuario_id'] ?? null;
-$produto_id = $pedido['produto_id'] ?? null;
+$usuario_id = $dados['usuario_id'] ?? null;
+$itens      = $dados['itens'] ?? []; 
 
-// Checamos se veio alguma informação faltando
-if (!$usuario_id || !$produto_id) {
-    echo json_encode([
-        "sucesso" => false, 
-        "mensagem" => "Por favor, informe o usuário e o produto!"
-    ]);
-    exit(); // Para a execução do código aqui
-}
-
-//  Vamos no banco ver se esse produto existe e se tem quantidade disponível
-$consultaEstoque = $db->prepare("SELECT quantidade_disponivel FROM estoque WHERE id = :produto_id");
-$consultaEstoque->execute([':produto_id' => $produto_id]);
-$item = $consultaEstoque->fetch(PDO::FETCH_ASSOC);
-
-// Se o produto não existe OU a quantidade for 0 ou menor, cancelamos
-if (!$item || $item['quantidade_disponivel'] <= 0) {
-    echo json_encode([
-        "sucesso" => false, 
-        "mensagem" => "Ops! Esse produto está esgotado."
-    ]);
+if (!$usuario_id || empty($itens) || !is_array($itens)) {
+    http_response_code(400);
+    echo json_encode(["sucesso" => false, "mensagem" => "Dados do pedido inválidos!"]);
     exit();
 }
 
-// Guardamos o pedido na tabela 'pedidos'
-$dataAtual = date('Y-m-d H:i:s'); // Pega a data e hora de agora
+try {
+    $db->beginTransaction();
+    $dataAtual = date('Y-m-d H:i:s');
 
-$salvar = $db->prepare("INSERT INTO pedidos (usuario_id, produto_id, status, data) VALUES (:usuario_id, :produto_id, 'Pendente', :data)");
-$salvar->execute([
-    ':usuario_id' => $usuario_id,
-    ':produto_id' => $produto_id,
-    ':data'       => $dataAtual
-]);
+    $stmtCheckEstoque = $db->prepare("SELECT quantidade_disponivel FROM estoque WHERE id = :produto_id");
+    $stmtPedido       = $db->prepare("INSERT INTO pedidos (usuario_id, produto_id, status, data) VALUES (:usuario_id, :produto_id, 'Pendente', :data)");
+    $stmtBaixaEstoque = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE id = :produto_id");
 
-// Tiramos 1 unidade do produto que acabou de ser vendido
-$diminuirEstoque = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - 1 WHERE id = :produto_id");
-$diminuirEstoque->execute([':produto_id' => $produto_id]);
+    foreach ($itens as $item) {
+        $produto_id = $item['produto_id'] ?? null;
+        $quantidade = intval($item['quantidade'] ?? 1);
 
-// Avisamos para o site/app que deu tudo certo!
-echo json_encode([
-    "sucesso" => true,
-    "mensagem" => "Pedido realizado com sucesso!"
-]);
+        if (!$produto_id || $quantidade <= 0) continue;
+
+        // Verifica o estoque
+        $stmtCheckEstoque->execute([':produto_id' => $produto_id]);
+        $estoqueAtual = $stmtCheckEstoque->fetch(PDO::FETCH_ASSOC);
+
+        if (!$estoqueAtual || $estoqueAtual['quantidade_disponivel'] < $quantidade) {
+            $db->rollBack();
+            http_response_code(400);
+            echo json_encode(["sucesso" => false, "mensagem" => "Estoque insuficiente para o produto ID {$produto_id}!"]);
+            exit();
+        }
+
+        // Registra cada item pedido
+        for ($i = 0; $i < $quantidade; $i++) {
+            $stmtPedido->execute([
+                ':usuario_id' => $usuario_id,
+                ':produto_id' => $produto_id,
+                ':data'       => $dataAtual
+            ]);
+        }
+
+        // Subtrai do estoque
+        $stmtBaixaEstoque->execute([
+            ':qtd'        => $quantidade,
+            ':produto_id' => $produto_id
+        ]);
+    }
+
+    $db->commit();
+    echo json_encode(["sucesso" => true, "mensagem" => "Pedido(s) registrado(s) com sucesso!"]);
+
+} catch (PDOException $e) {
+    if ($db->inTransaction()) $db->rollBack();
+    http_response_code(500);
+    echo json_encode(["sucesso" => false, "mensagem" => "Erro ao registrar o pedido no banco."]);
+}
 ?>
