@@ -8,7 +8,7 @@ const items = [
 
 export default function Confirmacao() {
   return (
-    <FigmaShell active="cart">
+    <>
       <div className={`${figmaStyles.page} h-full mx-auto overflow-auto`}>
         <h1 className={figmaStyles.title}>Seu pedido é:</h1>
         {items.map((item) => (
@@ -24,6 +24,6 @@ export default function Confirmacao() {
         <div className={figmaStyles.confirmSpacer} />
         <button className={`${figmaStyles.button} flex items-center justify-center gap-3`}><span>Sim, está correto</span><Check /></button>
       </div>
-    </FigmaShell>
+    </>
   );
 }

@@ -7,7 +7,7 @@ const pedidos = ["Mousse", "Bolo no pote"];
 
 export default function Perfil() {
   return (
-    <FigmaShell active="user">
+    <>
       <div className={`${figmaStyles.page} h-full mx-auto overflow-auto`}>
         <h1 className={figmaStyles.title}>Perfil</h1>
         <FigmaCard className="text-center">
@@ -30,6 +30,6 @@ export default function Perfil() {
         </FigmaCard>
         <button className={`${figmaStyles.button} mt-5`}>Desconectar</button>
       </div>
-    </FigmaShell>
+    </>
   );
 }

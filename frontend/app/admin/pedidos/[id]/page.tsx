@@ -6,7 +6,7 @@ import { FigmaShell, FigmaCard, figmaStyles } from "@/components/FigmaPage";
 export default async function PedidoDetalhe({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return (
-    <FigmaShell active="user">
+    <>
       <div className={`${figmaStyles.adminContent} h-full mx-auto overflow-auto`}>
         <div className={figmaStyles.profileHead}><FigmaUserIcon /><span>Admin.</span></div>
         <FigmaCard>
@@ -24,6 +24,6 @@ export default async function PedidoDetalhe({ params }: { params: Promise<{ id: 
           <button className={`${figmaStyles.button} ${figmaStyles.purpleButton} ${figmaStyles.detailButton}`}>Finalizar pedido</button>
         </FigmaCard>
       </div>
-    </FigmaShell>
+    </>
   );
 }
