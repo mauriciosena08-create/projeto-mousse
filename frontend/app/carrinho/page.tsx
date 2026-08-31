@@ -5,7 +5,7 @@ interface Props {
     description: string;
 }
 
-export default function Home() {
+export default function Carrinho() {
   const doces: Props[] = [
     { 
       title: "Mousse",
@@ -31,11 +31,11 @@ export default function Home() {
 
   return (
       <section>
-        <h1 className="text-white font-bold text-2xl my-5 ml-5 text-center">Conheça nossos doces!</h1>
+        <h1 className="text-white font-bold text-2xl my-5 ml-5 text-center">Meu carrinho</h1>
 
         <section className="space-y-5 px-5 flex flex-wrap justify-around">
           { doces.map((item, key) => (
-            <Product key={key} title={item.title} description={item.description} btnAdd={true} />
+            <Product key={key} title={item.title} description={item.description} />
           )) }
         </section>
       </section>
