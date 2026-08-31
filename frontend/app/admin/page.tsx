@@ -11,7 +11,7 @@ export default function Admin() {
         <div className={figmaStyles.profileHead}><FigmaUserIcon /><span>Admin.</span></div>
         <div className={figmaStyles.adminStats}>
           <div className={figmaStyles.adminStat}><label>N° de Pedidos:</label><input className={figmaStyles.input} value="X" readOnly /></div>
-          <div className={figmaStyles.adminStat}><label>Estoque: <Link href="/admin/estoque" className="text-[var(--roxo-claro)]">✎</Link></label><input className={figmaStyles.input} value="X" readOnly /></div>
+          <div className={figmaStyles.adminStat}><label>Estoque: <Link href="/admin/estoque" className="text-[--roxo-claro]">✎</Link></label><input className={figmaStyles.input} value="X" readOnly /></div>
         </div>
         <FigmaCard>
           <h2 className="text-center font-bold text-lg mb-4">Pedidos</h2>

@@ -22,7 +22,7 @@ export default function EditarPerfil() {
         <div className={figmaStyles.editGrid}>
           {fields.map(([label, value]) => (
             <label key={label} className={figmaStyles.label}>
-              <span className="flex items-center gap-2">{label} <Pencil size={14} className="text-[var(--roxo-claro)]" /></span>
+              <span className="flex items-center gap-2">{label} <Pencil size={14} className="text-[--roxo-claro]" /></span>
               <input className={`${figmaStyles.input} mt-2`} value={value} readOnly type={label === "Senha:" ? "password" : "text"} />
             </label>
           ))}
