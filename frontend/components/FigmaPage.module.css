@@ -1,0 +1,51 @@
+.page { width: 100%; max-width: 430px; min-height: 100%; padding: 18px 20px 22px; box-sizing: border-box; }
+.page h1, .page h2, .page h3, .page p { margin: 0; }
+.title { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 26px !important; }
+.card { background: var(--cinza); color: #17141a; border-radius: 13px; padding: 14px; }
+.purple { background: var(--roxo-claro); color: white; }
+.button { width: 100%; border: 0; border-radius: 11px; background: var(--cinza); color: #211824; font-weight: 700; padding: 11px 14px; cursor: pointer; }
+.purpleButton { background: var(--roxo-claro); color: white; }
+.bottomNav { height: 55px; background: var(--roxo); display: flex; align-items: center; justify-content: space-around; padding: 0 18px; flex-shrink: 0; }
+.navButton { width: 34px; height: 34px; border-radius: 50%; background: var(--roxo-claro); display: grid; place-items: center; color: white; }
+.navButton svg { width: 22px; height: 22px; }
+.header { height: 62px; flex-shrink: 0; background: var(--roxo); display: flex; align-items: center; justify-content: space-between; padding: 0 13px; box-sizing: border-box; }
+.header img { object-fit: contain; }
+.header a { color: white; display: grid; place-items: center; }
+.header a svg { width: 21px; height: 21px; }
+.fullscreen { background: var(--background); color: white; }
+.userIcon { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--roxo-claro); color: var(--cinza); flex: 0 0 auto; }
+.profileHead { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+.profileHead .userIcon { width: 58px !important; height: 58px !important; }
+.profileHead > span:last-child { font-size: 21px; font-weight: 700; }
+.input { width: 100%; height: 44px; border-radius: 11px; padding: 0 13px; box-sizing: border-box; }
+.label { display: block; font-weight: 700; font-size: 15px; margin: 0 0 6px; }
+.editGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 14px; }
+.orderItem { background: var(--roxo-claro); color: white; border-radius: 11px; padding: 10px 12px; min-height: 54px; }
+.orderItem strong { display: block; font-size: 15px; }
+.orderItem small { display: block; margin-top: 2px; font-size: 11px; color: #d9d9d9; }
+.orderDate { float: right; font-size: 11px; margin-top: -15px; }
+.adminContent { width: 100%; max-width: 430px; padding: 20px 20px 22px; box-sizing: border-box; }
+.adminStats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.adminStat label { display: block; font-weight: 700; margin: 0 0 8px 8px; }
+.adminStat .input { text-align: center; font-size: 17px; }
+.stockGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 14px; }
+.stockGrid .label { text-align: center; min-height: 38px; display: flex; align-items: flex-end; justify-content: center; flex-direction: column; }
+.ordersBox { background: var(--cinza); color: #211824; border-radius: 13px; padding: 12px; }
+.ordersHeading { display: flex; align-items: center; gap: 22px; font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+.ordersHeading a { color: #211824; }
+.ordersList { display: grid; gap: 12px; }
+.adminOrder { background: var(--roxo-claro); color: white; border-radius: 11px; padding: 10px 12px; font-size: 14px; }
+.adminOrder strong { display: block; }
+.adminOrder span { display: block; margin-left: 30px; color: #ddd; font-size: 13px; }
+.detail { background: var(--roxo-claro); color: white; border-radius: 11px; padding: 14px; font-size: 15px; line-height: 1.35; }
+.detail p { margin-bottom: 3px !important; }
+.detailGap { margin-top: 17px !important; }
+.detailButton { width: auto; min-width: 150px; display: block; margin: 28px auto 0; }
+.confirmItem { display: grid; grid-template-columns: 1.15fr .85fr; gap: 12px; align-items: center; margin-bottom: 24px; }
+.placeholder { aspect-ratio: 1 / 1; background: var(--cinza); border-radius: 13px; }
+.confirmCopy strong { display: block; font-size: 14px; line-height: 1.15; }
+.confirmCopy p { font-size: 11px; line-height: 1.25; margin-top: 6px !important; }
+.qty { height: 35px; margin-top: 10px; background: var(--cinza); color: #211824; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-weight: 700; position: relative; }
+.qty svg { position: absolute; right: 12px; width: 17px; }
+.confirmSpacer { height: 100px; }
+@media (max-width: 380px) { .page, .adminContent { padding-left: 14px; padding-right: 14px; } .title { font-size: 18px; } }
