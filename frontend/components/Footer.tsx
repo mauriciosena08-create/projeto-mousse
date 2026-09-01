@@ -10,7 +10,7 @@ export default function Header() {
             <Link href={"/carrinho"} className="bg-roxo-claro p-5 rounded-full">
                 <ShoppingCart color="white" size={30} />
             </Link>
-            <Link href={"/"} className="bg-roxo-claro p-5 rounded-full">
+            <Link href={"/login"} className="bg-roxo-claro p-5 rounded-full">
                 <User color="white" size={30} />
             </Link>
         </footer>

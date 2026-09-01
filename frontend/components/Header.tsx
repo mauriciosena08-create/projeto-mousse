@@ -6,7 +6,9 @@ import Link from "next/link";
 export default function Header() {
     return (
         <header className="bg-roxo flex items-center justify-between px-5">
-            <Image loading="eager" src={logo} alt="Infodoces" />
+            <Link className="cursor-pointer" href="/easterEgg">
+                <Image loading="eager" src={logo} alt="Infodoces" />
+            </Link>
             <Link className="cursor-pointer" href="/menu">
                 <Menu  color="white" size={50} />
             </Link>
