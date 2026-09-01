@@ -1,29 +1,39 @@
-import { Check, Pencil } from "lucide-react";
-import { FigmaShell, figmaStyles } from "@/components/FigmaPage";
+"use client";
 
-const items = [
-  { name: "Bolo no pote de chocolate", qty: 1 },
-  { name: "Mousse de maracujá", qty: 2 },
-];
+import Product from "@/components/Product";
+import { Check } from "lucide-react";
+import { useCarrinho } from "@/lib/atoms/carrinhoAtom";
+import Link from "next/link";
 
 export default function Confirmacao() {
+  const { carrinho } = useCarrinho();
+
   return (
-    <FigmaShell active="cart">
-      <div className={`${figmaStyles.page} h-full mx-auto overflow-auto`}>
-        <h1 className={figmaStyles.title}>Seu pedido é:</h1>
-        {items.map((item) => (
-          <div className={figmaStyles.confirmItem} key={item.name}>
-            <div className={figmaStyles.placeholder} />
-            <div className={figmaStyles.confirmCopy}>
-              <strong>{item.name}</strong>
-              <p>texto texto texto,<br />texto texto</p>
-              <div className={figmaStyles.qty}><span>{item.qty}</span><Pencil /></div>
-            </div>
-          </div>
-        ))}
-        <div className={figmaStyles.confirmSpacer} />
-        <button className={`${figmaStyles.button} flex items-center justify-center gap-3`}><span>Sim, está correto</span><Check /></button>
-      </div>
-    </FigmaShell>
+    <section className="flex-col text-center space-y-3">
+      <h1 className="w-full font-bold text-2xl">Seu pedido é:</h1>
+      {carrinho.length > 0 ? (
+        <>
+          {carrinho.map((item) => (
+            <Product
+              key={item.produto}
+              title={item.produto}
+              description={`Quantidade: ${item.quant}`}
+              inCart
+              />
+          ))}
+          
+          <Link href="/agradecimento" className="px-5 py-3 w-full text-center justify-evenly bg-gray-700 rounded-2xl btn cursor-pointer transition-colors font-semibold flex">
+            <span>Sim, está certo</span>
+            <Check />
+          </Link>
+        </>
+      ) : (
+          <>
+              <h2 className="w-full text-center text-xl">O carrinho está vazio!</h2>
+              <Link href="/" className="underline">Quero encher o carrinho!</Link>
+            </>
+          )
+        }
+    </section>
   );
 }

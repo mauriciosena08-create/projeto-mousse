@@ -35,7 +35,7 @@ export default function Home() {
 
         <section className="space-y-5 px-5 flex flex-wrap justify-around">
           { doces.map((item, key) => (
-            <Product key={key} title={item.title} description={item.description} btnAdd={true} />
+            <Product key={key} title={item.title} description={item.description} btnAdd />
           )) }
         </section>
       </section>

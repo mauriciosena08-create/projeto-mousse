@@ -5,7 +5,7 @@ const fields = ["Bolo de pote:", "Mousse de limão:", "Mousse de maracujá:", "M
 
 export default function Estoque() {
   return (
-    <FigmaShell active="user">
+    <>
       <div className={`${figmaStyles.adminContent} h-full mx-auto overflow-auto`}>
         <div className={figmaStyles.profileHead}><FigmaUserIcon /><span>Admin.</span></div>
         <h1 className="text-xl font-bold mb-8 ml-2">Editar estoque</h1>
@@ -14,6 +14,6 @@ export default function Estoque() {
         </div>
         <button className={`${figmaStyles.button} mt-60`}>Salvar alterações</button>
       </div>
-    </FigmaShell>
+    </>
   );
 }
