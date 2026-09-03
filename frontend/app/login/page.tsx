@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import api from "@/lib/api";
 import { usePerfil } from "@/lib/atoms/perfilAtom";
-import Link from "next/link";
 
 export default function Login() {
     const router = useRouter();
@@ -13,21 +14,34 @@ export default function Login() {
     const [nome, setNome] = useState("");
     const [senha, setSenha] = useState("");
 
-    function entrar() {
+    async function entrar() {
         if (!nome || !senha) {
             alert("Preencha todos os campos.");
             return;
         }
 
-        // Depois você pode substituir isso por uma requisição à API
-        definirPerfil({
-            nome,
-            curso: "Informática",
-            periodo: "3",
-            senha,
-        });
+        try {
+            const API = api();
 
-        router.push("/perfil");
+            const data = await API.login(nome, senha);
+
+            definirPerfil({
+                nome: data.usuario.nome,
+                curso: data.usuario.curso,
+                periodo: data.usuario.periodo,
+                senha,
+            });
+
+            router.push("/perfil");
+        } catch (err) {
+            console.error(err);
+
+            alert(
+                err instanceof Error
+                    ? err.message
+                    : "Erro ao fazer login."
+            );
+        }
     }
 
     return (
@@ -38,10 +52,7 @@ export default function Login() {
 
             <section className="space-y-5 flex flex-col items-center my-10">
                 <article>
-                    <label
-                        className="block mb-2"
-                        htmlFor="nome"
-                    >
+                    <label className="block mb-2" htmlFor="nome">
                         Nome:
                     </label>
 
@@ -55,10 +66,7 @@ export default function Login() {
                 </article>
 
                 <article>
-                    <label
-                        className="block mb-2"
-                        htmlFor="senha"
-                    >
+                    <label className="block mb-2" htmlFor="senha">
                         Senha:
                     </label>
 
@@ -77,7 +85,10 @@ export default function Login() {
                 >
                     Entrar
                 </button>
-                <Link href="/cadastro" className="underline">Ainda não me cadastrei</Link>
+
+                <Link href="/cadastro" className="underline">
+                    Não tenho cadastro
+                </Link>
             </section>
         </section>
     );

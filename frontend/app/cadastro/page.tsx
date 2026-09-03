@@ -4,11 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { usePerfil } from "@/lib/atoms/perfilAtom";
+import api from "@/lib/api";
 
 export default function Cadastro() {
     const router = useRouter();
-    const { definirPerfil } = usePerfil();
 
     const [nome, setNome] = useState("");
     const [curso, setCurso] = useState("");
@@ -16,7 +15,7 @@ export default function Cadastro() {
     const [senha, setSenha] = useState("");
     const [confirmarSenha, setConfirmarSenha] = useState("");
 
-    function cadastrar() {
+    async function cadastrar() {
         if (!nome || !curso || !periodo || !senha || !confirmarSenha) {
             alert("Preencha todos os campos.");
             return;
@@ -27,14 +26,29 @@ export default function Cadastro() {
             return;
         }
 
-        definirPerfil({
-            nome,
-            curso,
-            periodo,
-            senha,
-        });
+        try {
+            const API = api();
 
-        router.push("/perfil");
+            await API.cadastrar(
+                nome,
+                senha,
+                curso,
+                periodo
+            );
+
+            alert("Cadastro realizado com sucesso!");
+
+            router.push("/login");
+
+        } catch (err) {
+            console.error(err);
+
+            alert(
+                err instanceof Error
+                    ? err.message
+                    : "Erro ao realizar cadastro."
+            );
+        }
     }
 
     return (

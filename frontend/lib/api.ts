@@ -1,236 +1,432 @@
 const API_URL = "https://projeto-mousse.freehosting.dev/API";
 
 export default function api() {
-  // =========================
-  // GET
-  // =========================
 
-  async function get_stock() {
-    try {
-      const response = await fetch(`${API_URL}/get_stock.php`);
+    // =========================
+    // ESTOQUE
+    // =========================
 
-      if (!response.ok) {
-        throw new Error("Erro ao buscar estoque.");
-      }
+    async function get_stock() {
+        try {
+            const response = await fetch(
+                `${API_URL}/get_stock.php`
+            );
 
-      return await response.json();
-    } catch (err) {
-      console.error("get_stock:", err);
-      throw err;
+            if (!response.ok) {
+                throw new Error("Erro ao buscar estoque.");
+            }
+
+            return await response.json();
+
+        } catch (err) {
+            console.error(
+                "Erro ao buscar estoque:",
+                err
+            );
+
+            throw err;
+        }
     }
-  }
 
-  async function get_expenses() {
-    try {
-      const response = await fetch(`${API_URL}/get_expenses.php`);
+    async function add_stock(
+        produto: string,
+        quantidade: number
+    ) {
+        try {
+            const response = await fetch(
+                `${API_URL}/add_stock.php`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        produto,
+                        quantidade,
+                    }),
+                }
+            );
 
-      if (!response.ok) {
-        throw new Error("Erro ao buscar despesas.");
-      }
+            const data = await response.json();
 
-      return await response.json();
-    } catch (err) {
-      console.error("get_expenses:", err);
-      throw err;
+            if (!response.ok) {
+                throw new Error(
+                    data.mensagem ||
+                    "Erro ao adicionar estoque."
+                );
+            }
+
+            return data;
+
+        } catch (err) {
+            console.error(
+                "Erro ao adicionar estoque:",
+                err
+            );
+
+            throw err;
+        }
     }
-  }
 
-  async function get_orders() {
-    try {
-      const response = await fetch(`${API_URL}/get_orders.php`);
+    async function update_stock(
+        produto: string,
+        quantidade: number
+    ) {
+        try {
+            const response = await fetch(
+                `${API_URL}/update_stock.php`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        produto,
+                        quantidade,
+                    }),
+                }
+            );
 
-      if (!response.ok) {
-        throw new Error("Erro ao buscar pedidos.");
-      }
+            const data = await response.json();
 
-      return await response.json();
-    } catch (err) {
-      console.error("get_orders:", err);
-      throw err;
+            if (!response.ok) {
+                throw new Error(
+                    data.mensagem ||
+                    "Erro ao atualizar estoque."
+                );
+            }
+
+            return data;
+
+        } catch (err) {
+            console.error(
+                "Erro ao atualizar estoque:",
+                err
+            );
+
+            throw err;
+        }
     }
-  }
 
-  // =========================
-  // POST
-  // =========================
+    async function delete_stock(id: number) {
+        try {
+            const response = await fetch(
+                `${API_URL}/delete_stock.php`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        id,
+                    }),
+                }
+            );
 
-  async function add_stock(produto: string, quantidade: number) {
-    const data = {
-      produto,
-      quantidade,
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.mensagem ||
+                    "Erro ao remover produto."
+                );
+            }
+
+            return data;
+
+        } catch (err) {
+            console.error(
+                "Erro ao remover produto:",
+                err
+            );
+
+            throw err;
+        }
+    }
+
+
+    // =========================
+    // PEDIDOS
+    // =========================
+
+    async function add_order(
+        usuario_id: number,
+        itens: {
+            produto_id: number;
+            quantidade: number;
+        }[]
+    ) {
+        try {
+            const response = await fetch(
+                `${API_URL}/add_order.php`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        usuario_id,
+                        itens,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.mensagem ||
+                    "Erro ao realizar pedido."
+                );
+            }
+
+            return data;
+
+        } catch (err) {
+            console.error(
+                "Erro ao realizar pedido:",
+                err
+            );
+
+            throw err;
+        }
+    }
+
+    async function get_orders() {
+        try {
+            const response = await fetch(
+                `${API_URL}/get_orders.php`
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Erro ao buscar pedidos."
+                );
+            }
+
+            return await response.json();
+
+        } catch (err) {
+            console.error(
+                "Erro ao buscar pedidos:",
+                err
+            );
+
+            throw err;
+        }
+    }
+
+    async function finish_order(id: number) {
+        try {
+            const response = await fetch(
+                `${API_URL}/finish_order.php`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        id,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.mensagem ||
+                    "Erro ao finalizar pedido."
+                );
+            }
+
+            return data;
+
+        } catch (err) {
+            console.error(
+                "Erro ao finalizar pedido:",
+                err
+            );
+
+            throw err;
+        }
+    }
+
+
+    // =========================
+    // USUÁRIOS
+    // =========================
+
+    async function register(
+        nome: string,
+        senha: string,
+        curso: string,
+        periodo: string
+    ) {
+        try {
+            const response = await fetch(
+                `${API_URL}/register.php`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        nome,
+                        senha,
+                        curso,
+                        periodo,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.mensagem ||
+                    "Erro ao cadastrar."
+                );
+            }
+
+            return data;
+
+        } catch (err) {
+            console.error(
+                "Erro ao cadastrar:",
+                err
+            );
+
+            throw err;
+        }
+    }
+
+    async function login(
+        nome: string,
+        senha: string
+    ) {
+        try {
+            const response = await fetch(
+                `${API_URL}/login.php`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        nome,
+                        senha,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.mensagem ||
+                    "Erro ao fazer login."
+                );
+            }
+
+            return data;
+
+        } catch (err) {
+            console.error(
+                "Erro ao fazer login:",
+                err
+            );
+
+            throw err;
+        }
+    }
+
+
+    // =========================
+    // GASTOS
+    // =========================
+
+    async function expenses(
+        produto_id: number,
+        quantidade: number,
+        valor: number
+    ) {
+        try {
+            const response = await fetch(
+                `${API_URL}/expenses.php`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        produto_id,
+                        quantidade,
+                        valor,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.mensagem ||
+                    "Erro ao registrar gasto."
+                );
+            }
+
+            return data;
+
+        } catch (err) {
+            console.error(
+                "Erro ao registrar gasto:",
+                err
+            );
+
+            throw err;
+        }
+    }
+
+    async function get_expenses() {
+        try {
+            const response = await fetch(
+                `${API_URL}/get_expenses.php`
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Erro ao buscar gastos."
+                );
+            }
+
+            return await response.json();
+
+        } catch (err) {
+            console.error(
+                "Erro ao buscar gastos:",
+                err
+            );
+
+            throw err;
+        }
+    }
+
+
+    return {
+        get_stock,
+        add_stock,
+        update_stock,
+        delete_stock,
+
+        add_order,
+        get_orders,
+        finish_order,
+
+        register,
+        login,
+
+        expenses,
+        get_expenses,
     };
-
-    try {
-      const response = await fetch(`${API_URL}/add_stock.php`, {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao adicionar estoque.");
-      }
-
-      return await response.json();
-    } catch (err) {
-      console.error("add_stock:", err);
-      throw err;
-    }
-  }
-
-  async function add_expense(
-    item: string,
-    quantidade: number,
-    valor: number,
-    data: string,
-  ) {
-    const expense = {
-      item,
-      quantidade,
-      valor,
-      data,
-    };
-
-    try {
-      const response = await fetch(`${API_URL}/expenses.php`, {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify(expense),
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao registrar despesa.");
-      }
-
-      return await response.json();
-    } catch (err) {
-      console.error("add_expense:", err);
-      throw err;
-    }
-  }
-
-  async function login(nome: string, senha: string) {
-    const data = {
-      nome,
-      senha,
-    };
-
-    try {
-      const response = await fetch(`${API_URL}/login.php`, {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.mensagem || "Erro ao fazer login.");
-      }
-
-      return result;
-    } catch (err) {
-      console.error("login:", err);
-      throw err;
-    }
-  }
-
-  async function register(
-    nome: string,
-    senha: string,
-    curso: string,
-    periodo: string,
-  ) {
-    const data = {
-      nome,
-      senha,
-      curso,
-      periodo,
-    };
-
-    try {
-      const response = await fetch(`${API_URL}/register.php`, {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.mensagem || "Erro ao registrar usuário.");
-      }
-
-      return result;
-    } catch (err) {
-      console.error("register:", err);
-      throw err;
-    }
-  }
-
-  async function add_order(
-    usuario_id: number,
-    itens: {
-      produto_id: number;
-      quantidade: number;
-    }[],
-  ) {
-    const data = {
-      usuario_id,
-      itens,
-    };
-
-    try {
-      const response = await fetch(`${API_URL}/add_order.php`, {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.mensagem || "Erro ao registrar pedido.");
-      }
-
-      return result;
-    } catch (err) {
-      console.error("add_order:", err);
-      throw err;
-    }
-  }
-
-  return {
-    // GET
-    get_stock,
-    get_expenses,
-    get_orders,
-
-    // POST
-    add_stock,
-    add_expense,
-    login,
-    register,
-    add_order,
-  };
 }
