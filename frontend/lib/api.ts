@@ -1,4 +1,4 @@
-const API_URL = "https://projeto-mousse.freehosting.dev/API";
+const API_URL = "/api/proxy";
 
 export default function api() {
 
