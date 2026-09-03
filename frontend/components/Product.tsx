@@ -3,20 +3,65 @@
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 
+import { useCarrinho } from "@/lib/atoms/carrinhoAtom";
+
 interface Props {
     title: string;
     description: string;
     btnAdd?: boolean;
+    inCart?: boolean;
 }
 
-export default function Product({ title, description, btnAdd }: Props) {
+export default function Product({
+    title,
+    description,
+    btnAdd = false,
+    inCart = false,
+}: Props) {
+    const {
+        carrinho,
+        adicionarProduto,
+        retirarProduto,
+    } = useCarrinho();
+
+    const produtoCarrinho = carrinho.find(
+        (item) => item.produto === title
+    );
+
     const [quant, setQuant] = useState(1);
 
+    const quantCarrinho = produtoCarrinho?.quant ?? 0;
+
+    function adicionarAoCarrinho() {
+        adicionarProduto({
+            produto: title,
+            quant,
+        });
+    }
+
     function lessQuant() {
+        if (inCart) {
+            retirarProduto({
+                produto: title,
+                quant: 1,
+            });
+
+            return;
+        }
+
         setQuant((prev) => Math.max(1, prev - 1));
     }
 
     function moreQuant() {
+        if (inCart) {
+            adicionarProduto({
+                produto: title,
+                quant: 1,
+            });
+
+            return;
+        }
+
         setQuant((prev) => prev + 1);
     }
 
@@ -25,8 +70,6 @@ export default function Product({ title, description, btnAdd }: Props) {
 
             {/* Imagem */}
             <div className="flex aspect-square w-32 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-100">
-                {/* <img src="/produto.png" alt={title} className="h-full w-full object-cover" /> */}
-
                 <span className="text-sm font-medium text-gray-400">
                     Sem imagem
                 </span>
@@ -53,7 +96,7 @@ export default function Product({ title, description, btnAdd }: Props) {
                         <button
                             type="button"
                             onClick={lessQuant}
-                            disabled={quant === 1}
+                            disabled={inCart ? quantCarrinho === 0 : quant === 1}
                             aria-label="Diminuir quantidade"
                             className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 shadow-sm transition hover:bg-gray-100 active:scale-90 disabled:opacity-30"
                         >
@@ -61,7 +104,7 @@ export default function Product({ title, description, btnAdd }: Props) {
                         </button>
 
                         <span className="min-w-6 text-center text-sm font-bold text-gray-900">
-                            {quant}
+                            {inCart ? quantCarrinho : quant}
                         </span>
 
                         <button
@@ -76,9 +119,13 @@ export default function Product({ title, description, btnAdd }: Props) {
                     </div>
                 </div>
 
-                { btnAdd === true && (
-                    <button>
-                        hiii
+                {/* Só aparece fora do carrinho */}
+                {btnAdd && !inCart && (
+                    <button
+                        className="bg-gray-500 px-2 py-4 rounded-2xl cursor-pointer"
+                        onClick={adicionarAoCarrinho}
+                    >
+                        Adicionar ao carrinho
                     </button>
                 )}
             </div>
