@@ -1,8 +1,8 @@
 <?php
 // Exemplo de conexão utilizando caminho absoluto dentro do container Docker
 $dbPath = __DIR__ . '/database.sqlite'; // Ou o nome exato do seu arquivo .db / .sqlite
-$pdo = new PDO("sqlite:" . $dbPath);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$db = new PDO("sqlite:" . $dbPath);
+$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 // 2. Liberamos o acesso para o React conseguir conversar com o PHP sem bloqueios no navegador (CORS)
 //Não sei como isso funciona, pedi para o gemini criar pois não entendo de react
 header("Access-Control-Allow-Origin: *");
