@@ -424,6 +424,7 @@ export default function api() {
         finish_order,
 
         register,
+        cadastrar: register,
         login,
 
         expenses,
