@@ -6,15 +6,19 @@ import api from "@/lib/api";
 
 interface Produto {
     id: number;
-    produto: string;
-    quantidade_disponivel: number;
-    data: string;
+    produto?: string;
+    nome?: string;
+    quantidade_disponivel?: number;
+    quantidade?: number;
+    quant?: number;
+    data?: string;
 }
 
 interface EstoqueResponse {
-    sucesso: boolean;
-    total_produtos: number;
-    produtos: Produto[];
+    sucesso?: boolean;
+    total_produtos?: number;
+    produtos?: Produto[];
+    estoque?: Produto[];
 }
 
 export default function Home() {
@@ -28,13 +32,18 @@ export default function Home() {
 
                 const data: EstoqueResponse = await API.get_stock();
 
-                console.log("Produtos:", data?.produtos);
+                console.log("Resposta API:", data);
 
-                if (!data || !data.sucesso || !Array.isArray(data.produtos)) {
-                    throw new Error("Erro ao obter produtos ou formato inválido.");
+                // Busca o array dentro de data.estoque, data.produtos ou no próprio data
+                if (data && Array.isArray(data.estoque)) {
+                    setProdutos(data.estoque);
+                } else if (data && Array.isArray(data.produtos)) {
+                    setProdutos(data.produtos);
+                } else if (Array.isArray(data)) {
+                    setProdutos(data);
+                } else {
+                    setProdutos([]);
                 }
-
-                setProdutos(data.produtos);
 
             } catch (err) {
                 console.error("Erro ao carregar produtos:", err);
@@ -57,20 +66,32 @@ export default function Home() {
                 <p className="text-white text-center">
                     Carregando produtos...
                 </p>
-            ) : !produtos || produtos.length === 0 ? (
+            ) : !Array.isArray(produtos) || produtos.length === 0 ? (
                 <p className="text-white text-center">
                     Nenhum produto disponível.
                 </p>
             ) : (
                 <section className="space-y-5 px-5 flex flex-wrap justify-around">
-                    {produtos.map((item) => (
-                        <Product
-                            key={item.id}
-                            title={item.produto}
-                            description={`Disponível: ${item.quantidade_disponivel}`}
-                            btnAdd={item.quantidade_disponivel > 0}
-                        />
-                    ))}
+                    {produtos.map((item) => {
+                        // Tenta capturar o nome/titulo
+                        const titulo = item.produto || item.nome || "Produto";
+
+                        // Tenta capturar a quantidade disponível
+                        const quantidade =
+                            item.quantidade_disponivel ??
+                            item.quantidade ??
+                            item.quant ??
+                            0;
+
+                        return (
+                            <Product
+                                key={item.id}
+                                title={titulo}
+                                description={`Disponível: ${quantidade}`}
+                                btnAdd={quantidade > 0}
+                            />
+                        );
+                    })}
                 </section>
             )}
         </section>
