@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Product from "@/components/Product";
 import api from "@/lib/api";
 
@@ -25,40 +25,47 @@ export default function Home() {
     const [produtos, setProdutos] = useState<Produto[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        async function carregarProdutos() {
-            try {
-                const API = api();
+    const carregarProdutos = useCallback(async () => {
+        try {
+            setLoading(true);
+            const API = api();
+            const data: EstoqueResponse = await API.get_stock();
 
-                const data: EstoqueResponse = await API.get_stock();
+            // Extrai a lista do campo correto vindo do PHP (estoque, produtos ou array direto)
+            let lista: Produto[] = [];
 
-                console.log("Resposta API:", data);
-
-                // Busca o array dentro de data.estoque, data.produtos ou no próprio data
-                if (data && Array.isArray(data.estoque)) {
-                    setProdutos(data.estoque);
-                } else if (data && Array.isArray(data.produtos)) {
-                    setProdutos(data.produtos);
-                } else if (Array.isArray(data)) {
-                    setProdutos(data);
-                } else {
-                    setProdutos([]);
-                }
-
-            } catch (err) {
-                console.error("Erro ao carregar produtos:", err);
-                setProdutos([]);
-            } finally {
-                setLoading(false);
+            if (data && Array.isArray(data.estoque)) {
+                lista = data.estoque;
+            } else if (data && Array.isArray(data.produtos)) {
+                lista = data.produtos;
+            } else if (Array.isArray(data)) {
+                lista = data;
             }
-        }
 
-        carregarProdutos();
+            setProdutos(lista);
+        } catch (err) {
+            console.error("Erro ao carregar produtos:", err);
+            setProdutos([]);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        carregarProdutos();
+
+        // Atualiza os produtos quando a janela ganha foco novamente
+        const handleFocus = () => carregarProdutos();
+        window.addEventListener("focus", handleFocus);
+
+        return () => {
+            window.removeEventListener("focus", handleFocus);
+        };
+    }, [carregarProdutos]);
 
     return (
         <section>
-            <h1 className="text-white font-bold text-2xl my-5 ml-5 text-center">
+            <h1 className="text-white font-bold text-2xl my-5 text-center">
                 Conheça nossos doces!
             </h1>
 
@@ -73,15 +80,14 @@ export default function Home() {
             ) : (
                 <section className="space-y-5 px-5 flex flex-wrap justify-around">
                     {produtos.map((item) => {
-                        // Tenta capturar o nome/titulo
                         const titulo = item.produto || item.nome || "Produto";
-
-                        // Tenta capturar a quantidade disponível
-                        const quantidade =
+                        const quantidade = Math.max(
+                            0,
                             item.quantidade_disponivel ??
                             item.quantidade ??
                             item.quant ??
-                            0;
+                            0
+                        );
 
                         return (
                             <Product
