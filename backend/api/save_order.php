@@ -10,83 +10,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 ob_start();
-error_reporting(0);
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 require_once __DIR__ . '/database.php';
 ob_clean();
 
-$data = json_decode(file_get_contents("php://input"), true);
+$input = file_get_contents("php://input");
+$data = json_decode($input, true);
 
 if (!$data) {
     http_response_code(400);
-    echo json_encode(["sucesso" => false, "mensagem" => "Dados inválidos."]);
+    echo json_encode(["sucesso" => false, "mensagem" => "Dados inválidos recebidos."]);
     exit();
 }
 
 try {
     $cliente = $data['cliente'] ?? $data['usuario_id'] ?? 'Anônimo';
     $itensArray = $data['itens'] ?? [];
-    $itens = json_encode($itensArray);
+    $itensJson = json_encode($itensArray);
     $total = $data['total'] ?? 0;
     $dataHora = date('Y-m-d H:i:s');
 
-    // Inicia transação SQLite
-    $db->beginTransaction();
+    // Registra log para acompanhamento
+    file_put_contents(__DIR__ . '/debug_estoque.log', date('[Y-m-d H:i:s] ') . "PAYLOAD: " . $input . PHP_EOL, FILE_APPEND);
 
     // 1. Grava o pedido
     $stmt = $db->prepare("INSERT INTO pedidos (cliente, itens, total, data) VALUES (:cliente, :itens, :total, :data)");
     $stmt->execute([
         ':cliente' => $cliente,
-        ':itens'   => $itens,
+        ':itens'   => $itensJson,
         ':total'   => $total,
         ':data'    => $dataHora
     ]);
 
-    // 2. Atualiza o estoque no SQLite
+    // 2. Atualiza cada item no estoque
     if (is_array($itensArray)) {
-        // Prepara queries flexíveis para nome ou ID
-        $stmtNome = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE LOWER(TRIM(produto)) = LOWER(TRIM(:produto))");
-        $stmtAltNome = $db->prepare("UPDATE estoque SET quantidade = quantidade - :qtd WHERE LOWER(TRIM(produto)) = LOWER(TRIM(:produto))");
-        
-        $stmtId = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE id = :id");
-        $stmtAltId = $db->prepare("UPDATE estoque SET quantidade = quantidade - :qtd WHERE id = :id");
-
         foreach ($itensArray as $item) {
-            $nomeProduto = $item['produto'] ?? $item['nome'] ?? '';
-            $idProduto = $item['produto_id'] ?? $item['id'] ?? null;
+            $nomeProduto = trim($item['produto'] ?? $item['nome'] ?? '');
             $qtdComprada = (int)($item['quantidade'] ?? $item['quant'] ?? 1);
+            $idProduto = $item['id'] ?? $item['produto_id'] ?? null;
 
-            if ($qtdComprada > 0) {
-                // Tenta atualizar pelo Nome
-                if (!empty($nomeProduto)) {
-                    $stmtNome->execute([':qtd' => $qtdComprada, ':produto' => $nomeProduto]);
-                    
-                    if ($stmtNome->rowCount() === 0) {
-                        $stmtAltNome->execute([':qtd' => $qtdComprada, ':produto' => $nomeProduto]);
-                    }
-                } 
-                // Se não tiver nome, tenta atualizar pelo ID
-                elseif ($idProduto) {
-                    $stmtId->execute([':qtd' => $qtdComprada, ':id' => $idProduto]);
-                    
-                    if ($stmtId->rowCount() === 0) {
-                        $stmtAltId->execute([':qtd' => $qtdComprada, ':id' => $idProduto]);
-                    }
-                }
+            if ($qtdComprada <= 0) continue;
+
+            $afetados = 0;
+
+            // Tentativa 1: Atualiza pelo ID (mais seguro)
+            if ($idProduto) {
+                $stmtId = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE id = :id");
+                $stmtId->execute([':qtd' => $qtdComprada, ':id' => $idProduto]);
+                $afetados = $stmtId->rowCount();
             }
+
+            // Tentativa 2: Atualiza por comparação flexível de nome (LIKE)
+            if ($afetados === 0 && !empty($nomeProduto)) {
+                $stmtNome = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE produto LIKE :produto OR nome LIKE :produto");
+                $stmtNome->execute([':qtd' => $qtdComprada, ':produto' => '%' . $nomeProduto . '%']);
+                $afetados = $stmtNome->rowCount();
+            }
+
+            // Tentativa 3: Se a coluna no SQLite se chamar 'quantidade' em vez de 'quantidade_disponivel'
+            if ($afetados === 0) {
+                $stmtAlt = $db->prepare("UPDATE estoque SET quantidade = quantidade - :qtd WHERE produto LIKE :produto OR nome LIKE :produto");
+                $stmtAlt->execute([':qtd' => $qtdComprada, ':produto' => '%' . $nomeProduto . '%']);
+                $afetados = $stmtAlt->rowCount();
+            }
+
+            // Loga no arquivo o resultado da atualização
+            file_put_contents(__DIR__ . '/debug_estoque.log', date('[Y-m-d H:i:s] ') . "Item: {$nomeProduto} | Qtd: {$qtdComprada} | Linhas afetadas: {$afetados}" . PHP_EOL, FILE_APPEND);
         }
     }
 
-    $db->commit();
-
-    echo json_encode(["sucesso" => true, "mensagem" => "Pedido salvo e estoque atualizado!"]);
-} catch (PDOException $e) {
-    if ($db->inTransaction()) {
-        $db->rollBack();
-    }
-
+    echo json_encode(["sucesso" => true, "mensagem" => "Pedido realizado com sucesso!"]);
+} catch (Exception $e) {
+    file_put_contents(__DIR__ . '/debug_estoque.log', date('[Y-m-d H:i:s] ') . "ERRO: " . $e->getMessage() . PHP_EOL, FILE_APPEND);
     http_response_code(500);
-    echo json_encode(["sucesso" => false, "mensagem" => "Erro ao salvar pedido: " . $e->getMessage()]);
+    echo json_encode(["sucesso" => false, "mensagem" => "Erro no servidor: " . $e->getMessage()]);
 }
 ?>
