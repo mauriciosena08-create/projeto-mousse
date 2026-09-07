@@ -25,16 +25,16 @@ if (!$data) {
 }
 
 try {
-    $cliente = $data['cliente'] ?? '';
+    $cliente = $data['cliente'] ?? $data['usuario_id'] ?? 'Anônimo';
     $itensArray = $data['itens'] ?? [];
     $itens = json_encode($itensArray);
     $total = $data['total'] ?? 0;
     $dataHora = date('Y-m-d H:i:s');
 
-    // Transação SQLite
+    // Inicia transação SQLite
     $db->beginTransaction();
 
-    // 1. Salva o pedido
+    // 1. Grava o pedido
     $stmt = $db->prepare("INSERT INTO pedidos (cliente, itens, total, data) VALUES (:cliente, :itens, :total, :data)");
     $stmt->execute([
         ':cliente' => $cliente,
@@ -43,28 +43,36 @@ try {
         ':data'    => $dataHora
     ]);
 
-    // 2. Subtrai o estoque no SQLite
+    // 2. Atualiza o estoque no SQLite
     if (is_array($itensArray)) {
-        // Tenta atualizar garantindo case-insensitive (LOWER/TRIM)
-        $stmtEstoque = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE LOWER(TRIM(produto)) = LOWER(TRIM(:produto))");
+        // Prepara queries flexíveis para nome ou ID
+        $stmtNome = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE LOWER(TRIM(produto)) = LOWER(TRIM(:produto))");
+        $stmtAltNome = $db->prepare("UPDATE estoque SET quantidade = quantidade - :qtd WHERE LOWER(TRIM(produto)) = LOWER(TRIM(:produto))");
         
+        $stmtId = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE id = :id");
+        $stmtAltId = $db->prepare("UPDATE estoque SET quantidade = quantidade - :qtd WHERE id = :id");
+
         foreach ($itensArray as $item) {
-            $nomeProduto = $item['produto'] ?? '';
-            $qtdComprada = (int)($item['quantidade'] ?? $item['quant'] ?? 0);
+            $nomeProduto = $item['produto'] ?? $item['nome'] ?? '';
+            $idProduto = $item['produto_id'] ?? $item['id'] ?? null;
+            $qtdComprada = (int)($item['quantidade'] ?? $item['quant'] ?? 1);
 
-            if (!empty($nomeProduto) && $qtdComprada > 0) {
-                $stmtEstoque->execute([
-                    ':qtd'     => $qtdComprada,
-                    ':produto' => $nomeProduto
-                ]);
-
-                // Se não alterou nenhuma linha, tenta na coluna 'quantidade' (caso seu nome de coluna no SQLite seja diferente)
-                if ($stmtEstoque->rowCount() === 0) {
-                    $stmtAlt = $db->prepare("UPDATE estoque SET quantidade = quantidade - :qtd WHERE LOWER(TRIM(produto)) = LOWER(TRIM(:produto))");
-                    $stmtAlt->execute([
-                        ':qtd'     => $qtdComprada,
-                        ':produto' => $nomeProduto
-                    ]);
+            if ($qtdComprada > 0) {
+                // Tenta atualizar pelo Nome
+                if (!empty($nomeProduto)) {
+                    $stmtNome->execute([':qtd' => $qtdComprada, ':produto' => $nomeProduto]);
+                    
+                    if ($stmtNome->rowCount() === 0) {
+                        $stmtAltNome->execute([':qtd' => $qtdComprada, ':produto' => $nomeProduto]);
+                    }
+                } 
+                // Se não tiver nome, tenta atualizar pelo ID
+                elseif ($idProduto) {
+                    $stmtId->execute([':qtd' => $qtdComprada, ':id' => $idProduto]);
+                    
+                    if ($stmtId->rowCount() === 0) {
+                        $stmtAltId->execute([':qtd' => $qtdComprada, ':id' => $idProduto]);
+                    }
                 }
             }
         }
@@ -72,7 +80,7 @@ try {
 
     $db->commit();
 
-    echo json_encode(["sucesso" => true, "mensagem" => "Pedido salvo e estoque atualizado com sucesso!"]);
+    echo json_encode(["sucesso" => true, "mensagem" => "Pedido salvo e estoque atualizado!"]);
 } catch (PDOException $e) {
     if ($db->inTransaction()) {
         $db->rollBack();
