@@ -1,4 +1,4 @@
-const API_URL = "https://projeto-mousse.onrender.com";
+const API_URL = "https://projeto-mousse.onrender.com/api";
 
 export default function api() {
 
