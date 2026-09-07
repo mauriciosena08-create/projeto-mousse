@@ -26,15 +26,23 @@ try {
         tipo TEXT DEFAULT 'comprador'
     )");
 
-    // Tabela de Estoque
+    // Tabela de Estoque (com campo imagem)
     $db->exec("CREATE TABLE IF NOT EXISTS estoque (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         produto TEXT NOT NULL,
         quantidade_disponivel INTEGER DEFAULT 0,
+        imagem TEXT DEFAULT '',
         data TEXT
     )");
 
-    // Tabela de Pedidos (Inclui a coluna status)
+    // Migração: adiciona 'imagem' no estoque caso a tabela já existisse antes
+    try {
+        $db->exec("ALTER TABLE estoque ADD COLUMN imagem TEXT DEFAULT ''");
+    } catch (PDOException $e) {
+        // Ignora se a coluna já existir
+    }
+
+    // Tabela de Pedidos
     $db->exec("CREATE TABLE IF NOT EXISTS pedidos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         cliente TEXT,
@@ -44,11 +52,11 @@ try {
         data TEXT
     )");
 
-    // Migração de banco: adiciona a coluna 'status' em bancos SQLite que já foram criados anteriormente
+    // Migração: adiciona 'status' nos pedidos caso a tabela já existisse antes
     try {
         $db->exec("ALTER TABLE pedidos ADD COLUMN status TEXT DEFAULT 'Pendente'");
     } catch (PDOException $e) {
-        // Ignora o erro se a coluna já existir na tabela
+        // Ignora se a coluna já existir
     }
 
     // Cria o Administrador Padrão 'admininastro' se não existir
@@ -63,7 +71,6 @@ try {
     }
 
 } catch (PDOException $e) {
-    // Retorna resposta JSON amigável e tratada em caso de falha no SQLite
     header("Content-Type: application/json; charset=UTF-8");
     http_response_code(500);
     echo json_encode([
