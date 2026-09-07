@@ -264,6 +264,25 @@ export default function api() {
             throw err;
         }
     }
+    async update_order_status(id: number, status: string = "Concluído") {
+    try {
+        const response = await fetch(`${API_URL}/update_order_status.php`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id, status }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.mensagem || "Erro ao atualizar status.");
+
+        return data;
+    } catch (err) {
+        console.error("Erro ao atualizar status do pedido:", err);
+        throw err;
+    }
+}
 
 
     // =========================
