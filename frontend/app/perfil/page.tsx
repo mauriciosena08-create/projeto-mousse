@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Pencil, Package } from "lucide-react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -24,6 +24,7 @@ export default function Perfil() {
     }, [perfil, router]);
 
     function desconectar() {
+        localStorage.removeItem("usuario");
         limparPerfil();
         router.replace("/login");
     }
@@ -49,9 +50,20 @@ export default function Perfil() {
                     {perfil.curso} {perfil.periodo}º Período
                 </p>
 
+                {/* Botão visível APENAS para administradores */}
+                {perfil.tipo === "admin" && (
+                    <Link
+                        href="/admin"
+                        className={`${figmaStyles.button} bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 mt-4 font-bold`}
+                    >
+                        Gerenciar Estoque
+                        <Package size={16} />
+                    </Link>
+                )}
+
                 <Link
                     href="/perfil/editar"
-                    className={`${figmaStyles.button} ${figmaStyles.purpleButton} flex items-center justify-center gap-2 mt-4`}
+                    className={`${figmaStyles.button} ${figmaStyles.purpleButton} flex items-center justify-center gap-2 mt-3`}
                 >
                     Editar perfil
                     <Pencil size={16} />
