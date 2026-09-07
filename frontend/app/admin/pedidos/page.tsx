@@ -23,12 +23,6 @@ interface Pedido {
     periodo: string;
 }
 
-interface PedidosResponse {
-    sucesso: boolean;
-    total_pedidos: number;
-    pedidos: Pedido[];
-}
-
 export default function PedidosAdmin() {
     const [pedidos, setPedidos] = useState<Pedido[]>([]);
     const [loading, setLoading] = useState(true);
@@ -38,16 +32,19 @@ export default function PedidosAdmin() {
             try {
                 const API = api();
 
-                const data: PedidosResponse = await API.get_orders();
+                const data = await API.get_orders();
 
-                if (!data.sucesso) {
-                    throw new Error("Erro ao carregar pedidos.");
+                if (data && Array.isArray(data.pedidos)) {
+                    setPedidos(data.pedidos);
+                } else if (Array.isArray(data)) {
+                    setPedidos(data);
+                } else {
+                    setPedidos([]);
                 }
-
-                setPedidos(data.pedidos);
 
             } catch (err) {
                 console.error("Erro ao carregar pedidos:", err);
+                setPedidos([]);
             } finally {
                 setLoading(false);
             }
@@ -56,9 +53,9 @@ export default function PedidosAdmin() {
         carregarPedidos();
     }, []);
 
-    const pendentes = pedidos.filter(
-        (pedido) => pedido.status === "Pendente"
-    ).length;
+    const pendentes = Array.isArray(pedidos)
+        ? pedidos.filter((pedido) => pedido.status === "Pendente").length
+        : 0;
 
     return (
         <>
@@ -87,7 +84,7 @@ export default function PedidosAdmin() {
                             <p className="text-center">
                                 Carregando pedidos...
                             </p>
-                        ) : pedidos.length === 0 ? (
+                        ) : !Array.isArray(pedidos) || pedidos.length === 0 ? (
                             <p className="text-center">
                                 Nenhum pedido encontrado.
                             </p>
