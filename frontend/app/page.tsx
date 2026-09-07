@@ -28,16 +28,17 @@ export default function Home() {
 
                 const data: EstoqueResponse = await API.get_stock();
 
-                console.log("Produtos:", data.produtos);
+                console.log("Produtos:", data?.produtos);
 
-                if (!data.sucesso) {
-                    throw new Error("Erro ao obter produtos.");
+                if (!data || !data.sucesso || !Array.isArray(data.produtos)) {
+                    throw new Error("Erro ao obter produtos ou formato inválido.");
                 }
 
                 setProdutos(data.produtos);
 
             } catch (err) {
                 console.error("Erro ao carregar produtos:", err);
+                setProdutos([]);
             } finally {
                 setLoading(false);
             }
@@ -56,7 +57,7 @@ export default function Home() {
                 <p className="text-white text-center">
                     Carregando produtos...
                 </p>
-            ) : produtos.length === 0 ? (
+            ) : !produtos || produtos.length === 0 ? (
                 <p className="text-white text-center">
                     Nenhum produto disponível.
                 </p>
