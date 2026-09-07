@@ -51,7 +51,7 @@ export default function Perfil() {
                 </p>
 
                 {/* Botão visível APENAS para administradores */}
-                {perfil.tipo === "admin" && (
+                {(perfil as Record<string, any>).tipo === "admin" && (
                     <Link
                         href="/admin"
                         className={`${figmaStyles.button} bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 mt-4 font-bold`}
