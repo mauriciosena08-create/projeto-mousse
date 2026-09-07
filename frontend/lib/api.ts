@@ -1,4 +1,4 @@
-const API_URL = "/api/proxy";
+const API_URL = "https://projeto-mousse.onrender.com";
 
 export default function api() {
 
