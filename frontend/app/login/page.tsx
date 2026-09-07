@@ -25,14 +25,27 @@ export default function Login() {
 
             const data = await API.login(nome, senha);
 
-            definirPerfil({
+            // 1. Salva o perfil incluindo a propriedade 'tipo' retornada pelo backend
+            const usuarioDados = {
+                id: data.usuario.id,
                 nome: data.usuario.nome,
                 curso: data.usuario.curso,
                 periodo: data.usuario.periodo,
+                tipo: data.usuario.tipo, // <-- AQUI: Salva se é 'admin' ou 'comprador'
                 senha,
-            });
+            };
 
-            router.push("/perfil");
+            definirPerfil(usuarioDados);
+
+            // Também salvamos no localStorage para garantir persistência entre recarregamentos
+            localStorage.setItem("usuario", JSON.stringify(usuarioDados));
+
+            // 2. Redirecionamento condicional com base no tipo[cite: 7]
+            if (data.usuario.tipo === "admin") {
+                router.push("/admin"); // Redireciona para o painel de gerenciamento do admin
+            } else {
+                router.push("/perfil"); // Redireciona o comprador normal
+            }
         } catch (err) {
             console.error(err);
 
