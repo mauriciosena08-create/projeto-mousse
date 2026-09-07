@@ -26,20 +26,50 @@ if (!$data) {
 
 try {
     $cliente = $data['cliente'] ?? '';
-    $itens = json_encode($data['itens'] ?? []);
+    $itensArray = $data['itens'] ?? [];
+    $itens = json_encode($itensArray);
     $total = $data['total'] ?? 0;
     $dataHora = date('Y-m-d H:i:s');
 
+    // Inicia uma transação no banco de dados para garantir consistência
+    $db->beginTransaction();
+
+    // 1. Salva o pedido na tabela pedidos
     $stmt = $db->prepare("INSERT INTO pedidos (cliente, itens, total, data) VALUES (:cliente, :itens, :total, :data)");
     $stmt->execute([
         ':cliente' => $cliente,
-        ':itens' => $itens,
-        ':total' => $total,
-        ':data' => $dataHora
+        ':itens'   => $itens,
+        ':total'   => $total,
+        ':data'    => $dataHora
     ]);
 
-    echo json_encode(["sucesso" => true, "mensagem" => "Pedido salvo com sucesso!"]);
+    // 2. Subtrai os itens comprados da tabela de estoque
+    if (is_array($itensArray)) {
+        $stmtEstoque = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE produto = :produto");
+        
+        foreach ($itensArray as $item) {
+            $nomeProduto = $item['produto'] ?? '';
+            $qtdComprada = (int)($item['quantidade'] ?? $item['quant'] ?? 0);
+
+            if (!empty($nomeProduto) && $qtdComprada > 0) {
+                $stmtEstoque->execute([
+                    ':qtd'     => $qtdComprada,
+                    ':produto' => $nomeProduto
+                ]);
+            }
+        }
+    }
+
+    // Confirma as alterações no banco de dados
+    $db->commit();
+
+    echo json_encode(["sucesso" => true, "mensagem" => "Pedido salvo e estoque atualizado com sucesso!"]);
 } catch (PDOException $e) {
+    // Em caso de erro, desfaz as alterações no banco
+    if ($db->inTransaction()) {
+        $db->rollBack();
+    }
+
     http_response_code(500);
     echo json_encode(["sucesso" => false, "mensagem" => "Erro ao salvar pedido: " . $e->getMessage()]);
 }
