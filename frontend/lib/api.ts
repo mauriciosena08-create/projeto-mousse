@@ -32,7 +32,8 @@ export default function api() {
 
     async function add_stock(
         produto: string,
-        quantidade: number
+        quantidade: number,
+        imagem: string = ""
     ) {
         try {
             const response = await fetch(
@@ -45,6 +46,7 @@ export default function api() {
                     body: JSON.stringify({
                         produto,
                         quantidade,
+                        imagem,
                     }),
                 }
             );
@@ -67,7 +69,8 @@ export default function api() {
 
     async function update_stock(
         produto: string,
-        quantidade: number
+        quantidade: number,
+        imagem: string = ""
     ) {
         try {
             const response = await fetch(
@@ -80,6 +83,7 @@ export default function api() {
                     body: JSON.stringify({
                         produto,
                         quantidade,
+                        imagem,
                     }),
                 }
             );
