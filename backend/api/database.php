@@ -34,14 +34,22 @@ try {
         data TEXT
     )");
 
-    // Tabela de Pedidos
+    // Tabela de Pedidos (Inclui a coluna status)
     $db->exec("CREATE TABLE IF NOT EXISTS pedidos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         cliente TEXT,
         itens TEXT,
         total REAL,
+        status TEXT DEFAULT 'Pendente',
         data TEXT
     )");
+
+    // Migração de banco: adiciona a coluna 'status' em bancos SQLite que já foram criados anteriormente
+    try {
+        $db->exec("ALTER TABLE pedidos ADD COLUMN status TEXT DEFAULT 'Pendente'");
+    } catch (PDOException $e) {
+        // Ignora o erro se a coluna já existir na tabela
+    }
 
     // Cria o Administrador Padrão 'admininastro' se não existir
     $stmtCheck = $db->prepare("SELECT COUNT(*) FROM usuarios WHERE nome = 'admininastro'");
