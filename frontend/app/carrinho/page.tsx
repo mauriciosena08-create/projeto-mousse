@@ -16,6 +16,30 @@ export default function Carrinho() {
     async function handleConfirmarPedido() {
         if (!carrinho || carrinho.length === 0) return;
 
+        // 1. Verifica se existe usuário logado no localStorage
+        const usuarioSalvo = localStorage.getItem("usuario");
+        if (!usuarioSalvo) {
+            alert("Você precisa estar logado para fazer um pedido!");
+            router.push("/login");
+            return;
+        }
+
+        let usuario: any = null;
+        try {
+            usuario = JSON.parse(usuarioSalvo);
+        } catch (e) {
+            alert("Sessão inválida. Por favor, faça login novamente.");
+            router.push("/login");
+            return;
+        }
+
+        const nomeCliente = usuario?.nome || usuario?.cliente;
+        if (!nomeCliente) {
+            alert("Sessão inválida. Por favor, faça login novamente.");
+            router.push("/login");
+            return;
+        }
+
         try {
             setEnviando(true);
             const API = api() as any;
@@ -25,11 +49,16 @@ export default function Carrinho() {
                 quantidade: item.quant || item.quantidade,
             }));
 
-            // Chama o método da API (com fallback caso o nome no api.ts seja diferente)
+            // Método da API
             const criarPedido = API.create_order || API.add_order || API.pedir || API.post_order;
             
             if (typeof criarPedido === "function") {
-                await criarPedido({ itens: itensFormatados });
+                // Envia o cliente junto aos itens
+                await criarPedido({ 
+                    cliente: nomeCliente,
+                    usuario_id: usuario.id,
+                    itens: itensFormatados 
+                });
             }
 
             // Limpa o armazenamento local do carrinho
@@ -38,12 +67,11 @@ export default function Carrinho() {
 
             alert("Pedido confirmado com sucesso!");
 
-            // Força a recarga para atualizar a tela e o estado
-            window.location.href = "/";
+            // Redireciona para o perfil para acompanhar o pedido
+            window.location.href = "/perfil";
         } catch (error) {
             console.error("Erro ao confirmar pedido:", error);
-            localStorage.removeItem("carrinho");
-            window.location.href = "/";
+            alert("Ocorreu um erro ao processar o seu pedido. Tente novamente.");
         } finally {
             setEnviando(false);
         }
