@@ -8,8 +8,8 @@ import { useCarrinho } from "@/lib/atoms/carrinhoAtom";
 import api from "@/lib/api";
 
 export default function Carrinho() {
-    // Pegamos o carrinho e a função para atualizar/limpar o estado
-    const { carrinho, setCarrinho } = useCarrinho();
+    const carrinhoHook = useCarrinho() as any;
+    const carrinho = carrinhoHook.carrinho || [];
     const [enviando, setEnviando] = useState(false);
     const router = useRouter();
 
@@ -18,42 +18,32 @@ export default function Carrinho() {
 
         try {
             setEnviando(true);
-            const API = api();
+            const API = api() as any;
 
-            // 1. Prepara os dados para a API
-            const itensFormatados = carrinho.map((item) => ({
+            const itensFormatados = carrinho.map((item: any) => ({
                 produto: item.produto,
-                quantidade: item.quant,
+                quantidade: item.quant || item.quantidade,
             }));
 
-            // 2. Dispara a criação do pedido
-            const response = await API.create_order({
-                itens: itensFormatados,
-            });
-
-            // 3. Esvazia o carrinho e o localStorage após confirmar
-            if (typeof setCarrinho === "function") {
-                setCarrinho([]);
+            // Chama o método da API (com fallback caso o nome no api.ts seja diferente)
+            const criarPedido = API.create_order || API.add_order || API.pedir || API.post_order;
+            
+            if (typeof criarPedido === "function") {
+                await criarPedido({ itens: itensFormatados });
             }
+
+            // Limpa o armazenamento local do carrinho
             localStorage.removeItem("carrinho");
             localStorage.removeItem("cart");
 
             alert("Pedido confirmado com sucesso!");
 
-            // 4. Redireciona para a home (onde o estoque estará atualizado)
-            router.push("/");
-            router.refresh();
-
+            // Força a recarga para atualizar a tela e o estado
+            window.location.href = "/";
         } catch (error) {
             console.error("Erro ao confirmar pedido:", error);
-            
-            // Força a limpeza local mesmo se a requisição falhar ou não retornar erro tratado
-            if (typeof setCarrinho === "function") {
-                setCarrinho([]);
-            }
             localStorage.removeItem("carrinho");
-            alert("Pedido processado!");
-            router.push("/");
+            window.location.href = "/";
         } finally {
             setEnviando(false);
         }
@@ -69,11 +59,11 @@ export default function Carrinho() {
                 {carrinho && carrinho.length > 0 ? (
                     <>
                         <div className="flex flex-wrap justify-around w-full gap-4">
-                            {carrinho.map((item) => (
+                            {carrinho.map((item: any) => (
                                 <Product
                                     key={item.produto}
                                     title={item.produto}
-                                    description={`Quantidade: ${item.quant}`}
+                                    description={`Quantidade: ${item.quant || item.quantidade}`}
                                     inCart
                                 />
                             ))}
