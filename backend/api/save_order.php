@@ -31,10 +31,10 @@ try {
     $total = $data['total'] ?? 0;
     $dataHora = date('Y-m-d H:i:s');
 
-    // Inicia uma transação no banco de dados para garantir consistência
+    // Transação SQLite
     $db->beginTransaction();
 
-    // 1. Salva o pedido na tabela pedidos
+    // 1. Salva o pedido
     $stmt = $db->prepare("INSERT INTO pedidos (cliente, itens, total, data) VALUES (:cliente, :itens, :total, :data)");
     $stmt->execute([
         ':cliente' => $cliente,
@@ -43,9 +43,10 @@ try {
         ':data'    => $dataHora
     ]);
 
-    // 2. Subtrai os itens comprados da tabela de estoque
+    // 2. Subtrai o estoque no SQLite
     if (is_array($itensArray)) {
-        $stmtEstoque = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE produto = :produto");
+        // Tenta atualizar garantindo case-insensitive (LOWER/TRIM)
+        $stmtEstoque = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE LOWER(TRIM(produto)) = LOWER(TRIM(:produto))");
         
         foreach ($itensArray as $item) {
             $nomeProduto = $item['produto'] ?? '';
@@ -56,16 +57,23 @@ try {
                     ':qtd'     => $qtdComprada,
                     ':produto' => $nomeProduto
                 ]);
+
+                // Se não alterou nenhuma linha, tenta na coluna 'quantidade' (caso seu nome de coluna no SQLite seja diferente)
+                if ($stmtEstoque->rowCount() === 0) {
+                    $stmtAlt = $db->prepare("UPDATE estoque SET quantidade = quantidade - :qtd WHERE LOWER(TRIM(produto)) = LOWER(TRIM(:produto))");
+                    $stmtAlt->execute([
+                        ':qtd'     => $qtdComprada,
+                        ':produto' => $nomeProduto
+                    ]);
+                }
             }
         }
     }
 
-    // Confirma as alterações no banco de dados
     $db->commit();
 
     echo json_encode(["sucesso" => true, "mensagem" => "Pedido salvo e estoque atualizado com sucesso!"]);
 } catch (PDOException $e) {
-    // Em caso de erro, desfaz as alterações no banco
     if ($db->inTransaction()) {
         $db->rollBack();
     }
