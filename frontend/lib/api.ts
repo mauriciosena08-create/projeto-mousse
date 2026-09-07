@@ -1,5 +1,5 @@
-const API_URL = "https://projeto-mousse.onrender.com/api";
 
+const API_URL = "/api-php";
 export default function api() {
 
     // =========================
