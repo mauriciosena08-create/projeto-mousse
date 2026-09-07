@@ -27,14 +27,17 @@ export default function Estoque() {
 
                 const data = await API.get_stock();
 
-                if (!data.sucesso) {
-                    throw new Error(data.mensagem);
+                if (data && Array.isArray(data.produtos)) {
+                    setEstoque(data.produtos);
+                } else if (Array.isArray(data)) {
+                    setEstoque(data);
+                } else {
+                    setEstoque([]);
                 }
-
-                setEstoque(data.produtos);
 
             } catch (err) {
                 console.error(err);
+                setEstoque([]);
             } finally {
                 setLoading(false);
             }
@@ -50,14 +53,16 @@ export default function Estoque() {
         const valor = Math.max(0, Number(quantidade));
 
         setEstoque(atual =>
-            atual.map(item =>
-                item.id === id
-                    ? {
-                        ...item,
-                        quantidade_disponivel: valor,
-                    }
-                    : item
-            )
+            Array.isArray(atual)
+                ? atual.map(item =>
+                    item.id === id
+                        ? {
+                            ...item,
+                            quantidade_disponivel: valor,
+                        }
+                        : item
+                )
+                : []
         );
     }
 
@@ -86,11 +91,13 @@ export default function Estoque() {
 
             const data = await API.get_stock();
 
-            if (!data.sucesso) {
-                throw new Error(data.mensagem);
+            if (data && Array.isArray(data.produtos)) {
+                setEstoque(data.produtos);
+            } else if (Array.isArray(data)) {
+                setEstoque(data);
+            } else {
+                setEstoque([]);
             }
-
-            setEstoque(data.produtos);
 
             setNovoProduto("");
             setNovaQuantidade("");
@@ -105,6 +112,8 @@ export default function Estoque() {
     }
 
     async function salvarAlteracoes() {
+        if (!Array.isArray(estoque)) return;
+
         try {
             setSalvando(true);
 
@@ -148,7 +157,7 @@ export default function Estoque() {
                 <div className={figmaStyles.stockGrid}>
                     {loading ? (
                         <p>Carregando estoque...</p>
-                    ) : estoque.length === 0 ? (
+                    ) : !Array.isArray(estoque) || estoque.length === 0 ? (
                         <p>Nenhum produto cadastrado.</p>
                     ) : (
                         estoque.map(item => (
@@ -162,7 +171,7 @@ export default function Estoque() {
                                     type="number"
                                     min="0"
                                     className={`${figmaStyles.input} mt-2`}
-                                    value={item.quantidade_disponivel}
+                                    value={item.quantidade_disponivel ?? 0}
                                     onChange={e =>
                                         alterarQuantidade(
                                             item.id,
