@@ -1,5 +1,5 @@
-
 const API_URL = "/api-php";
+
 export default function api() {
 
     // =========================
@@ -8,8 +8,15 @@ export default function api() {
 
     async function get_stock() {
         try {
+            // Garante que a requisição não use cache usando timestamp e no-store
             const response = await fetch(
-                `${API_URL}/get_stock.php`
+                `${API_URL}/get_stock.php?t=${Date.now()}`,
+                {
+                    cache: "no-store",
+                    headers: {
+                        "Cache-Control": "no-cache",
+                    },
+                }
             );
 
             if (!response.ok) {
@@ -150,13 +157,19 @@ export default function api() {
     // =========================
 
     async function add_order(
-        usuario_id: number,
-        itens: {
-            produto_id: number;
+        usuario_id_or_payload: any,
+        itens?: {
+            produto_id?: number;
+            produto?: string;
             quantidade: number;
         }[]
     ) {
         try {
+            // Trata chamadas que passam objeto direto ex: { itens: [...] } ou (usuario_id, itens)
+            const bodyData = typeof usuario_id_or_payload === "object"
+                ? usuario_id_or_payload
+                : { usuario_id: usuario_id_or_payload, itens };
+
             const response = await fetch(
                 `${API_URL}/add_order.php`,
                 {
@@ -164,10 +177,7 @@ export default function api() {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        usuario_id,
-                        itens,
-                    }),
+                    body: JSON.stringify(bodyData),
                 }
             );
 
@@ -195,7 +205,10 @@ export default function api() {
     async function get_orders() {
         try {
             const response = await fetch(
-                `${API_URL}/get_orders.php`
+                `${API_URL}/get_orders.php`,
+                {
+                    cache: "no-store",
+                }
             );
 
             if (!response.ok) {
@@ -391,7 +404,10 @@ export default function api() {
     async function get_expenses() {
         try {
             const response = await fetch(
-                `${API_URL}/get_expenses.php`
+                `${API_URL}/get_expenses.php`,
+                {
+                    cache: "no-store",
+                }
             );
 
             if (!response.ok) {
@@ -420,6 +436,8 @@ export default function api() {
         delete_stock,
 
         add_order,
+        create_order: add_order,
+        pedir: add_order,
         get_orders,
         finish_order,
 
