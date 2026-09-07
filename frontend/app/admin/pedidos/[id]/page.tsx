@@ -28,23 +28,17 @@ interface Pedido {
     periodo?: string;
 }
 
-interface PedidosResponse {
-    sucesso: boolean;
-    total_pedidos?: number;
-    pedidos?: Pedido[];
-}
-
 export default function PedidoDetalhe({
     params,
 }: {
     params: Promise<{ id: string }>;
 }) {
-    // Resolve o params com 'use' nativo do React para Next.js 15+
     const resolvedParams = use(params);
     const id = resolvedParams.id;
 
     const [pedido, setPedido] = useState<Pedido | null>(null);
     const [loading, setLoading] = useState(true);
+    const [updating, setUpdating] = useState(false);
 
     useEffect(() => {
         async function carregarPedido() {
@@ -52,7 +46,6 @@ export default function PedidoDetalhe({
                 const API = api();
                 const response = await API.get_orders();
 
-                // Lida com caso a resposta venha como array direto ou objeto com key 'pedidos'
                 const listaPedidos: Pedido[] = Array.isArray(response) 
                     ? response 
                     : response?.pedidos || [];
@@ -62,7 +55,6 @@ export default function PedidoDetalhe({
                 );
 
                 if (encontrado) {
-                    // Trata a conversão segura do JSON de itens
                     if (typeof encontrado.itens === "string") {
                         try {
                             encontrado.itens = JSON.parse(encontrado.itens);
@@ -84,6 +76,25 @@ export default function PedidoDetalhe({
         }
     }, [id]);
 
+    // Função para finalizar o pedido
+    const handleFinalizarPedido = async () => {
+        if (!pedido) return;
+        
+        setUpdating(true);
+        try {
+            const API = api();
+            await API.update_order_status(pedido.id, "Concluído");
+            
+            // Atualiza o estado local para mudar na tela sem precisar recarregar
+            setPedido((prev) => prev ? { ...prev, status: "Concluído" } : null);
+            alert("Pedido finalizado com sucesso!");
+        } catch (error) {
+            alert("Erro ao finalizar o pedido. Tente novamente.");
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className={`${figmaStyles.adminContent} h-full mx-auto`}>
@@ -100,7 +111,6 @@ export default function PedidoDetalhe({
         );
     }
 
-    // Garante que itens seja sempre um array iterável
     const listaItens: ItemPedido[] = Array.isArray(pedido.itens) ? pedido.itens : [];
 
     return (
@@ -148,9 +158,11 @@ export default function PedidoDetalhe({
 
                 {(pedido.status === "Pendente" || !pedido.status) && (
                     <button
+                        onClick={handleFinalizarPedido}
+                        disabled={updating}
                         className={`${figmaStyles.button} ${figmaStyles.purpleButton} ${figmaStyles.detailButton}`}
                     >
-                        Finalizar pedido
+                        {updating ? "Finalizando..." : "Finalizar pedido"}
                     </button>
                 )}
             </FigmaCard>
