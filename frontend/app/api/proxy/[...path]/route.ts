@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_URL = "https://projeto-mousse.freehosting.dev/API";
-
+const API_URL = 'https://projeto-mousse.onrender.com';
 async function handler(
     req: NextRequest,
     { params }: { params: Promise<{ path: string[] }> }
