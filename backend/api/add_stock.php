@@ -1,44 +1,53 @@
 <?php
-require_once __DIR__ . '/database.php';
+// Permite requisições de qualquer origem (Vercel, localhost, etc.)
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Content-Type: application/json; charset=UTF-8");
 
-$dados = json_decode(file_get_contents("php://input"), true);
-
-$produto    = trim($dados['produto'] ?? '');
-$quantidade = intval($dados['quantidade'] ?? 0);
-//Verifica se ta vazio ou se tem qtd
-if (empty($produto) || $quantidade <= 0) {
-    http_response_code(400);
-    echo json_encode(["sucesso" => false, "mensagem" => "Informe o nome do produto e a quantidade!"]);
+// Trata a requisição preflight (OPTIONS) feita pelo navegador
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
     exit();
 }
 
-try {
-    $dataAtual = date('Y-m-d H:i:s');
+// Desativa exibição de erros HTML que quebram a resposta JSON
+ob_start();
+error_reporting(0);
+ini_set('display_errors', 0);
 
-    $stmtCheck = $db->prepare("SELECT id FROM estoque WHERE produto = :produto");
-    $stmtCheck->execute([':produto' => $produto]);
-    $itemExistente = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-//atualiza o produto no banco de dados
-    if ($itemExistente) {
-        $stmtUpdate = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel + :qtd, data = :data WHERE id = :id");
-        $stmtUpdate->execute([
-            ':qtd'  => $quantidade,
-            ':data' => $dataAtual,
-            ':id'   => $itemExistente['id']
-        ]);
-        echo json_encode(["sucesso" => true, "mensagem" => "Estoque atualizado com sucesso!"]);
-    } else {
-        //cria um novo produto
-        $stmtInsert = $db->prepare("INSERT INTO estoque (produto, quantidade_disponivel, data) VALUES (:produto, :qtd, :data)");
-        $stmtInsert->execute([
-            ':produto' => $produto,
-            ':qtd'     => $quantidade,
-            ':data'    => $dataAtual
-        ]);
-        echo json_encode(["sucesso" => true, "mensagem" => "Novo produto cadastrado no estoque!"]);
-    }
+require_once __DIR__ . '/database.php';
+ob_clean();
+
+$data = json_decode(file_get_contents("php://input"), true);
+
+$produto = trim($data['produto'] ?? '');
+$quantidade = intval($data['quantidade'] ?? 0);
+
+if (empty($produto) || $quantidade <= 0) {
+    http_response_code(400);
+    echo json_encode(["sucesso" => false, "mensagem" => "Informe um produto e uma quantidade válida."]);
+    exit;
+}
+
+try {
+    $stmt = $db->prepare("
+        INSERT INTO estoque (produto, quantidade_disponivel, data) 
+        VALUES (:produto, :quantidade, :data)
+        ON CONFLICT(produto) DO UPDATE SET 
+            quantidade_disponivel = quantidade_disponivel + :quantidade,
+            data = :data
+    ");
+
+    $stmt->execute([
+        ':produto' => $produto,
+        ':quantidade' => $quantidade,
+        ':data' => date('Y-m-d H:i:s')
+    ]);
+
+    echo json_encode(["sucesso" => true, "mensagem" => "Estoque atualizado com sucesso!"]);
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["sucesso" => false, "mensagem" => "Erro ao salvar no estoque."]);
+    echo json_encode(["sucesso" => false, "mensagem" => "Erro ao salvar no estoque: " . $e->getMessage()]);
 }
 ?>
