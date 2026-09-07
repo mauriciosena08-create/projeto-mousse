@@ -1,9 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  typescript: {
-    // Ignora erros do TypeScript para permitir o deploy
-    ignoreBuildErrors: true,
+  async rewrites() {
+    return [
+      {
+        source: "/api-php/:path*",
+        destination: "https://projeto-mousse.onrender.com/:path*",
+      },
+    ];
   },
 };
 
