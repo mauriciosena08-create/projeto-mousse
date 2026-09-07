@@ -17,7 +17,8 @@ type Pedido = {
 
 type Estoque = {
   produto: string;
-  quant: number;
+  quant?: number;
+  quantidade_disponivel?: number;
 };
 
 export default function Admin() {
@@ -33,15 +34,32 @@ export default function Admin() {
       try {
         const API = api();
 
-        const [orders, stock] = await Promise.all([
-          API.get_orders(),
-          API.get_stock(),
+        const [ordersRes, stockRes] = await Promise.all([
+          API.get_orders().catch(() => null),
+          API.get_stock().catch(() => null),
         ]);
 
-        setPedidos(orders);
-        setEstoque(stock);
+        // Trata a resposta de pedidos
+        if (Array.isArray(ordersRes)) {
+          setPedidos(ordersRes);
+        } else if (ordersRes && Array.isArray(ordersRes.pedidos)) {
+          setPedidos(ordersRes.pedidos);
+        } else {
+          setPedidos([]);
+        }
+
+        // Trata a resposta de estoque
+        if (Array.isArray(stockRes)) {
+          setEstoque(stockRes);
+        } else if (stockRes && Array.isArray(stockRes.produtos)) {
+          setEstoque(stockRes.produtos);
+        } else {
+          setEstoque([]);
+        }
       } catch (err) {
         console.error("Erro ao carregar painel:", err);
+        setPedidos([]);
+        setEstoque([]);
       } finally {
         setLoading(false);
       }
@@ -54,6 +72,15 @@ export default function Admin() {
     // Aqui você pode limpar o perfil
     // e futuramente redirecionar para login
   };
+
+  const totalEstoque = Array.isArray(estoque)
+    ? estoque.reduce((total, item) => {
+        const qtd = item.quant ?? item.quantidade_disponivel ?? 0;
+        return total + Number(qtd);
+      }, 0)
+    : 0;
+
+  const totalPedidos = Array.isArray(pedidos) ? pedidos.length : 0;
 
   return (
     <div
@@ -77,7 +104,7 @@ export default function Admin() {
 
           <input
             className={figmaStyles.input}
-            value={loading ? "..." : pedidos.length}
+            value={loading ? "..." : totalPedidos}
             readOnly
           />
         </div>
@@ -95,14 +122,7 @@ export default function Admin() {
 
           <input
             className={figmaStyles.input}
-            value={
-              loading
-                ? "..."
-                : estoque.reduce(
-                    (total, item) => total + Number(item.quant),
-                    0
-                  )
-            }
+            value={loading ? "..." : totalEstoque}
             readOnly
           />
         </div>
@@ -118,7 +138,7 @@ export default function Admin() {
           <p className="text-center opacity-60">
             Carregando pedidos...
           </p>
-        ) : pedidos.length === 0 ? (
+        ) : !Array.isArray(pedidos) || pedidos.length === 0 ? (
           <p className="text-center opacity-60">
             Nenhum pedido encontrado.
           </p>
