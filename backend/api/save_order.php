@@ -26,18 +26,31 @@ try {
         exit();
     }
 
-    $cliente = $data['cliente'] ?? $data['usuario_id'] ?? 'Anônimo';
+    $cliente = trim($data['cliente'] ?? $data['nome'] ?? $data['usuario_nome'] ?? '');
+
+    // BLOQUEIO: Se não houver cliente ou for Anônimo, impede a criação do pedido
+    if (empty($cliente) || strtolower($cliente) === 'anônimo' || strtolower($cliente) === 'anonimo') {
+        http_response_code(401);
+        echo json_encode([
+            "sucesso" => false, 
+            "mensagem" => "É necessário estar logado para realizar um pedido."
+        ]);
+        exit();
+    }
+
     $itensArray = $data['itens'] ?? [];
     $itensJson = json_encode($itensArray);
     $total = $data['total'] ?? 0;
+    $status = 'Pendente';
     $dataHora = date('Y-m-d H:i:s');
 
-    // 1. Grava o pedido
-    $stmt = $db->prepare("INSERT INTO pedidos (cliente, itens, total, data) VALUES (:cliente, :itens, :total, :data)");
+    // 1. Grava o pedido com a coluna status
+    $stmt = $db->prepare("INSERT INTO pedidos (cliente, itens, total, status, data) VALUES (:cliente, :itens, :total, :status, :data)");
     $stmt->execute([
         ':cliente' => $cliente,
         ':itens'   => $itensJson,
         ':total'   => $total,
+        ':status'  => $status,
         ':data'    => $dataHora
     ]);
 
