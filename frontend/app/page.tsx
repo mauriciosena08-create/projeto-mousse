@@ -11,6 +11,9 @@ interface Produto {
     quantidade_disponivel?: number;
     quantidade?: number;
     quant?: number;
+    imagem?: string;
+    image?: string;
+    img?: string;
     data?: string;
 }
 
@@ -52,24 +55,24 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
-    carregarProdutos();
+        carregarProdutos();
 
-    // Recarrega se a aba ganhar foco ou voltar da navegação
-    const handleFocus = () => carregarProdutos();
-    const handleVisibility = () => {
-        if (document.visibilityState === "visible") {
-            carregarProdutos();
-        }
-    };
+        // Recarrega se a aba ganhar foco ou voltar da navegação
+        const handleFocus = () => carregarProdutos();
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible") {
+                carregarProdutos();
+            }
+        };
 
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibility);
+        window.addEventListener("focus", handleFocus);
+        document.addEventListener("visibilitychange", handleVisibility);
 
-    return () => {
-        window.removeEventListener("focus", handleFocus);
-        document.removeEventListener("visibilitychange", handleVisibility);
-    };
-}, [carregarProdutos]);
+        return () => {
+            window.removeEventListener("focus", handleFocus);
+            document.removeEventListener("visibilitychange", handleVisibility);
+        };
+    }, [carregarProdutos]);
 
     return (
         <section>
@@ -96,12 +99,16 @@ export default function Home() {
                             item.quant ??
                             0
                         );
+                        
+                        // Captura a URL da imagem (ou o fallback para o placeholder)
+                        const imagemUrl = item.imagem || item.image || item.img || "/placeholder.png";
 
                         return (
                             <Product
                                 key={item.id}
                                 title={titulo}
                                 description={`Disponível: ${quantidade}`}
+                                image={imagemUrl}
                                 btnAdd={quantidade > 0}
                             />
                         );
