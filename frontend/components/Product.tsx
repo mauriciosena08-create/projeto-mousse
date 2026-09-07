@@ -8,6 +8,7 @@ import { useCarrinho } from "@/lib/atoms/carrinhoAtom";
 interface Props {
     title: string;
     description: string;
+    image?: string;
     btnAdd?: boolean;
     inCart?: boolean;
 }
@@ -15,6 +16,7 @@ interface Props {
 export default function Product({
     title,
     description,
+    image,
     btnAdd = false,
     inCart = false,
 }: Props) {
@@ -31,6 +33,9 @@ export default function Product({
     const [quant, setQuant] = useState(1);
 
     const quantCarrinho = produtoCarrinho?.quant ?? 0;
+
+    // Define a fonte da imagem (prioriza a prop recebida, depois tenta placeholder)
+    const imageSource = image && image.trim() !== "" ? image : "/placeholder.png";
 
     function adicionarAoCarrinho() {
         adicionarProduto({
@@ -70,9 +75,14 @@ export default function Product({
 
             {/* Imagem */}
             <div className="flex aspect-square w-32 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-100">
-                <span className="text-sm font-medium text-gray-400">
-                    Sem imagem
-                </span>
+                <img
+                    src={imageSource}
+                    alt={title || "Produto"}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/placeholder.png";
+                    }}
+                />
             </div>
 
             {/* Informações */}
