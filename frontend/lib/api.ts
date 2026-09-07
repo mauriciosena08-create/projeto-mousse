@@ -8,7 +8,6 @@ export default function api() {
 
     async function get_stock() {
         try {
-            // Garante que a requisição não use cache usando timestamp e no-store
             const response = await fetch(
                 `${API_URL}/get_stock.php?t=${Date.now()}`,
                 {
@@ -26,11 +25,7 @@ export default function api() {
             return await response.json();
 
         } catch (err) {
-            console.error(
-                "Erro ao buscar estoque:",
-                err
-            );
-
+            console.error("Erro ao buscar estoque:", err);
             throw err;
         }
     }
@@ -58,19 +53,14 @@ export default function api() {
 
             if (!response.ok) {
                 throw new Error(
-                    data.mensagem ||
-                    "Erro ao adicionar estoque."
+                    data.mensagem || "Erro ao adicionar estoque."
                 );
             }
 
             return data;
 
         } catch (err) {
-            console.error(
-                "Erro ao adicionar estoque:",
-                err
-            );
-
+            console.error("Erro ao adicionar estoque:", err);
             throw err;
         }
     }
@@ -98,19 +88,14 @@ export default function api() {
 
             if (!response.ok) {
                 throw new Error(
-                    data.mensagem ||
-                    "Erro ao atualizar estoque."
+                    data.mensagem || "Erro ao atualizar estoque."
                 );
             }
 
             return data;
 
         } catch (err) {
-            console.error(
-                "Erro ao atualizar estoque:",
-                err
-            );
-
+            console.error("Erro ao atualizar estoque:", err);
             throw err;
         }
     }
@@ -124,9 +109,7 @@ export default function api() {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        id,
-                    }),
+                    body: JSON.stringify({ id }),
                 }
             );
 
@@ -134,19 +117,14 @@ export default function api() {
 
             if (!response.ok) {
                 throw new Error(
-                    data.mensagem ||
-                    "Erro ao remover produto."
+                    data.mensagem || "Erro ao remover produto."
                 );
             }
 
             return data;
 
         } catch (err) {
-            console.error(
-                "Erro ao remover produto:",
-                err
-            );
-
+            console.error("Erro ao remover produto:", err);
             throw err;
         }
     }
@@ -165,7 +143,6 @@ export default function api() {
         }[]
     ) {
         try {
-            // Trata chamadas que passam objeto direto ex: { itens: [...] } ou (usuario_id, itens)
             const bodyData = typeof usuario_id_or_payload === "object"
                 ? usuario_id_or_payload
                 : { usuario_id: usuario_id_or_payload, itens };
@@ -185,19 +162,14 @@ export default function api() {
 
             if (!response.ok) {
                 throw new Error(
-                    data.mensagem ||
-                    "Erro ao realizar pedido."
+                    data.mensagem || "Erro ao realizar pedido."
                 );
             }
 
             return data;
 
         } catch (err) {
-            console.error(
-                "Erro ao realizar pedido:",
-                err
-            );
-
+            console.error("Erro ao realizar pedido:", err);
             throw err;
         }
     }
@@ -212,19 +184,13 @@ export default function api() {
             );
 
             if (!response.ok) {
-                throw new Error(
-                    "Erro ao buscar pedidos."
-                );
+                throw new Error("Erro ao buscar pedidos.");
             }
 
             return await response.json();
 
         } catch (err) {
-            console.error(
-                "Erro ao buscar pedidos:",
-                err
-            );
-
+            console.error("Erro ao buscar pedidos:", err);
             throw err;
         }
     }
@@ -238,9 +204,7 @@ export default function api() {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        id,
-                    }),
+                    body: JSON.stringify({ id }),
                 }
             );
 
@@ -248,41 +212,46 @@ export default function api() {
 
             if (!response.ok) {
                 throw new Error(
-                    data.mensagem ||
-                    "Erro ao finalizar pedido."
+                    data.mensagem || "Erro ao finalizar pedido."
                 );
             }
 
             return data;
 
         } catch (err) {
-            console.error(
-                "Erro ao finalizar pedido:",
-                err
-            );
-
+            console.error("Erro ao finalizar pedido:", err);
             throw err;
         }
     }
-    async update_order_status(id: number, status: string = "Concluído") {
-    try {
-        const response = await fetch(`${API_URL}/update_order_status.php`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ id, status }),
-        });
 
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.mensagem || "Erro ao atualizar status.");
+    async function update_order_status(id: number, status: string = "Concluído") {
+        try {
+            const response = await fetch(
+                `${API_URL}/update_order_status.php`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ id, status }),
+                }
+            );
 
-        return data;
-    } catch (err) {
-        console.error("Erro ao atualizar status do pedido:", err);
-        throw err;
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.mensagem || "Erro ao atualizar status do pedido."
+                );
+            }
+
+            return data;
+
+        } catch (err) {
+            console.error("Erro ao atualizar status do pedido:", err);
+            throw err;
+        }
     }
-}
 
 
     // =========================
@@ -316,19 +285,14 @@ export default function api() {
 
             if (!response.ok) {
                 throw new Error(
-                    data.mensagem ||
-                    "Erro ao cadastrar."
+                    data.mensagem || "Erro ao cadastrar."
                 );
             }
 
             return data;
 
         } catch (err) {
-            console.error(
-                "Erro ao cadastrar:",
-                err
-            );
-
+            console.error("Erro ao cadastrar:", err);
             throw err;
         }
     }
@@ -356,19 +320,14 @@ export default function api() {
 
             if (!response.ok) {
                 throw new Error(
-                    data.mensagem ||
-                    "Erro ao fazer login."
+                    data.mensagem || "Erro ao fazer login."
                 );
             }
 
             return data;
 
         } catch (err) {
-            console.error(
-                "Erro ao fazer login:",
-                err
-            );
-
+            console.error("Erro ao fazer login:", err);
             throw err;
         }
     }
@@ -403,19 +362,14 @@ export default function api() {
 
             if (!response.ok) {
                 throw new Error(
-                    data.mensagem ||
-                    "Erro ao registrar gasto."
+                    data.mensagem || "Erro ao registrar gasto."
                 );
             }
 
             return data;
 
         } catch (err) {
-            console.error(
-                "Erro ao registrar gasto:",
-                err
-            );
-
+            console.error("Erro ao registrar gasto:", err);
             throw err;
         }
     }
@@ -430,24 +384,19 @@ export default function api() {
             );
 
             if (!response.ok) {
-                throw new Error(
-                    "Erro ao buscar gastos."
-                );
+                throw new Error("Erro ao buscar gastos.");
             }
 
             return await response.json();
 
         } catch (err) {
-            console.error(
-                "Erro ao buscar gastos:",
-                err
-            );
-
+            console.error("Erro ao buscar gastos:", err);
             throw err;
         }
     }
 
 
+    // Retorno de todas as funções exportadas
     return {
         get_stock,
         add_stock,
@@ -459,6 +408,7 @@ export default function api() {
         pedir: add_order,
         get_orders,
         finish_order,
+        update_order_status,
 
         register,
         cadastrar: register,
