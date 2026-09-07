@@ -22,6 +22,7 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 $produto = trim($data['produto'] ?? '');
 $quantidade = intval($data['quantidade'] ?? 0);
+$imagem = trim($data['imagem'] ?? '');
 
 if (empty($produto) || $quantidade <= 0) {
     http_response_code(400);
@@ -31,7 +32,7 @@ if (empty($produto) || $quantidade <= 0) {
 
 try {
     // Consulta se o produto já existe para somar a quantidade
-    $stmtCheck = $db->prepare("SELECT id, quantidade_disponivel FROM estoque WHERE produto = :produto");
+    $stmtCheck = $db->prepare("SELECT id, quantidade_disponivel, imagem FROM estoque WHERE LOWER(produto) = LOWER(:produto)");
     $stmtCheck->execute([':produto' => $produto]);
     $itemExistente = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
@@ -39,18 +40,23 @@ try {
 
     if ($itemExistente) {
         $novaQtd = $itemExistente['quantidade_disponivel'] + $quantidade;
-        $stmtUpdate = $db->prepare("UPDATE estoque SET quantidade_disponivel = :qtd, data = :data WHERE id = :id");
+        // Se enviou uma nova imagem, atualiza; caso contrário, mantém a existente
+        $novaImagem = !empty($imagem) ? $imagem : ($itemExistente['imagem'] ?? '');
+
+        $stmtUpdate = $db->prepare("UPDATE estoque SET quantidade_disponivel = :qtd, imagem = :imagem, data = :data WHERE id = :id");
         $stmtUpdate->execute([
-            ':qtd' => $novaQtd,
-            ':data' => $dataAtual,
-            ':id' => $itemExistente['id']
+            ':qtd'    => $novaQtd,
+            ':imagem' => $novaImagem,
+            ':data'   => $dataAtual,
+            ':id'     => $itemExistente['id']
         ]);
     } else {
-        $stmtInsert = $db->prepare("INSERT INTO estoque (produto, quantidade_disponivel, data) VALUES (:produto, :quantidade, :data)");
+        $stmtInsert = $db->prepare("INSERT INTO estoque (produto, quantidade_disponivel, imagem, data) VALUES (:produto, :quantidade, :imagem, :data)");
         $stmtInsert->execute([
-            ':produto' => $produto,
+            ':produto'    => $produto,
             ':quantidade' => $quantidade,
-            ':data' => $dataAtual
+            ':imagem'     => $imagem,
+            ':data'       => $dataAtual
         ]);
     }
 
