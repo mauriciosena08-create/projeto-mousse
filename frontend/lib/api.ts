@@ -171,7 +171,7 @@ export default function api() {
                 : { usuario_id: usuario_id_or_payload, itens };
 
             const response = await fetch(
-                `${API_URL}/add_order.php`,
+                `${API_URL}/save_order.php`,
                 {
                     method: "POST",
                     headers: {
