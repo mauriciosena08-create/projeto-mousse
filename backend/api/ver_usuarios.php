@@ -8,7 +8,7 @@ require_once "database.php";
 
 try {
     // Consulta todos os registros da tabela usuarios
-    $stmt = $pdo->query("SELECT id, nome, curso, periodo FROM usuarios");
+    $stmt = $db->query("SELECT id, nome, curso, periodo FROM usuarios");
     $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Exibe os dados em formato JSON organizado
