@@ -52,16 +52,24 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
-        carregarProdutos();
+    carregarProdutos();
 
-        // Atualiza os produtos quando a janela ganha foco novamente
-        const handleFocus = () => carregarProdutos();
-        window.addEventListener("focus", handleFocus);
+    // Recarrega se a aba ganhar foco ou voltar da navegação
+    const handleFocus = () => carregarProdutos();
+    const handleVisibility = () => {
+        if (document.visibilityState === "visible") {
+            carregarProdutos();
+        }
+    };
 
-        return () => {
-            window.removeEventListener("focus", handleFocus);
-        };
-    }, [carregarProdutos]);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+        window.removeEventListener("focus", handleFocus);
+        document.removeEventListener("visibilitychange", handleVisibility);
+    };
+}, [carregarProdutos]);
 
     return (
         <section>
