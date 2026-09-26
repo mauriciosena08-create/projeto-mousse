@@ -42,16 +42,22 @@ export default function Carrinho() {
 
         try {
             setEnviando(true);
-            const API = api() as any;
+
+            // Concatena os nomes dos produtos para formatos que esperam uma string simples
+            const resumoProdutos = carrinho
+                .map((i: any) => `${i.quant || i.quantidade || 1}x ${i.produto}`)
+                .join(", ");
 
             const itensFormatados = carrinho.map((item: any) => ({
                 produto_id: item.id,
                 produto: item.produto,
                 quantidade: item.quant || item.quantidade || 1,
+                quant: item.quant || item.quantidade || 1,
             }));
 
-            // Payload completo contendo todas as variações de chaves esperadas pelo backend
+            // Payload híbrido completo (garante compatibilidade com tabelas relacionais ou simples)
             const payloadPedido = {
+                // Informações do Cliente
                 nome: nomeCliente,
                 cliente: nomeCliente,
                 usuario_nome: nomeCliente,
@@ -59,24 +65,34 @@ export default function Carrinho() {
                 usuario_id: usuario.id,
                 curso: usuario.curso || "",
                 periodo: usuario.periodo || "",
+
+                // Estrutura de Lista de Itens
                 itens: itensFormatados,
+                produtos: itensFormatados,
+
+                // Estrutura de Texto Plano (Fallback para PHP/DB legados)
+                produto: resumoProdutos,
+                quantidade: carrinho.reduce(
+                    (total: number, item: any) => total + (item.quant || item.quantidade || 1),
+                    0
+                ),
+
                 data: new Date().toISOString(),
                 status: "Pendente",
             };
 
-            // Método da API
-            const criarPedido = API.create_order || API.add_order || API.pedir || API.post_order;
-            
-            if (typeof criarPedido === "function") {
-                await criarPedido(payloadPedido);
-            } else {
-                // Fallback via Fetch Direto
-                const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://projeto-mousse.onrender.com";
-                await fetch(`${backendUrl}/create_order.php`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payloadPedido),
-                });
+            const backendUrl =
+                process.env.NEXT_PUBLIC_API_URL || "https://projeto-mousse.onrender.com";
+
+            // Envio direto via fetch para garantir que todos os campos do JSON são transmitidos
+            const response = await fetch(`${backendUrl}/create_order.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payloadPedido),
+            });
+
+            if (!response.ok) {
+                throw new Error("Erro na comunicação com o servidor.");
             }
 
             // Limpa o armazenamento local do carrinho e o estado do atom
@@ -109,7 +125,7 @@ export default function Carrinho() {
                     <>
                         <div className="flex flex-wrap justify-around w-full gap-4">
                             {carrinho.map((item: any) => (
-                               <Product
+                                <Product
                                     key={item.produto}
                                     title={item.produto}
                                     {...({
