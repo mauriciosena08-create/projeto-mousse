@@ -54,6 +54,13 @@ export default function Carrinho() {
                 quantidade: item.quant || item.quantidade || 1,
             }));
 
+            // Formatação da data/hora no fuso horário local (Horário de Brasília)
+            const agora = new Date();
+            const dataLocal = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000)
+                .toISOString()
+                .replace("T", " ")
+                .substring(0, 19);
+
             // Payload híbrido enviado para save_order.php
             const payloadPedido = {
                 // Dados do cliente
@@ -75,7 +82,7 @@ export default function Carrinho() {
                     0
                 ),
 
-                data: new Date().toISOString(),
+                data: dataLocal,
                 status: "Pendente",
             };
 
