@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Product from "@/components/Product";
 import api from "@/lib/api";
+import { useCarrinho } from "@/lib/atoms/carrinhoAtom";
 
 interface Produto {
     id: number;
@@ -28,6 +29,7 @@ export default function Home() {
     const [produtos, setProdutos] = useState<Produto[]>([]);
     const [loading, setLoading] = useState(true);
     const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
+    const carrinhoHook = useCarrinho() as any;
 
     const carregarProdutos = useCallback(async () => {
         try {
@@ -73,9 +75,47 @@ export default function Home() {
         };
     }, [carregarProdutos]);
 
-    const handleAddToCart = (produto: Produto) => {
+    const handleAddToCart = (produto: Produto, qtdSelecionada: number = 1) => {
+        const nomeProduto = produto.produto || produto.nome || "Produto";
+        const imagemUrl = produto.imagem || produto.image || produto.img || "";
+
+        const itemCarrinho = {
+            id: produto.id,
+            produto: nomeProduto,
+            quant: qtdSelecionada,
+            quantidade: qtdSelecionada,
+            imagem: imagemUrl,
+            image: imagemUrl,
+            img: imagemUrl,
+        };
+
+        // 1. Atualiza via Hook/Atom
+        if (typeof carrinhoHook.adicionarProduto === "function") {
+            carrinhoHook.adicionarProduto(itemCarrinho);
+        } else if (typeof carrinhoHook.setCarrinho === "function") {
+            carrinhoHook.setCarrinho((prev: any[]) => [...(prev || []), itemCarrinho]);
+        }
+
+        // 2. Salva também no localStorage para garantir persistência
+        try {
+            const carrinhoAtual = JSON.parse(localStorage.getItem("carrinho") || "[]");
+            const indexExistente = carrinhoAtual.findIndex((i: any) => i.produto === nomeProduto);
+
+            if (indexExistente >= 0) {
+                carrinhoAtual[indexExistente].quant = (carrinhoAtual[indexExistente].quant || 1) + qtdSelecionada;
+                carrinhoAtual[indexExistente].quantidade = carrinhoAtual[indexExistente].quant;
+                carrinhoAtual[indexExistente].imagem = imagemUrl;
+            } else {
+                carrinhoAtual.push(itemCarrinho);
+            }
+
+            localStorage.setItem("carrinho", JSON.stringify(carrinhoAtual));
+        } catch (e) {
+            console.error("Erro ao salvar carrinho no localStorage:", e);
+        }
+
         // Exibe o aviso
-        setMensagemSucesso("Produto adicionado com sucesso!");
+        setMensagemSucesso(`${nomeProduto} adicionado ao carrinho!`);
 
         // Remove a mensagem automaticamente após 3 segundos
         setTimeout(() => {
@@ -125,7 +165,7 @@ export default function Home() {
                                 description={`Disponível: ${quantidade}`}
                                 image={imagemUrl}
                                 btnAdd={quantidade > 0}
-                                onAdd={() => handleAddToCart(item)}
+                                onAdd={(qtd: number) => handleAddToCart(item, typeof qtd === "number" ? qtd : 1)}
                             />
                         );
                     })}
