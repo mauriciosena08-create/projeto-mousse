@@ -2,7 +2,8 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, CheckCircle } from "lucide-react";
 
 import FigmaUserIcon from "@/components/FigmaUserIcon";
 import { figmaStyles } from "@/components/FigmaPage";
@@ -28,9 +29,11 @@ interface Pedido {
 export default function DetalhesPedidoAdmin({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const pedidoId = resolvedParams.id;
+    const router = useRouter();
 
     const [pedido, setPedido] = useState<Pedido | null>(null);
     const [loading, setLoading] = useState(true);
+    const [atualizando, setAtualizando] = useState(false);
 
     useEffect(() => {
         async function carregarPedido() {
@@ -58,18 +61,44 @@ export default function DetalhesPedidoAdmin({ params }: { params: Promise<{ id: 
         carregarPedido();
     }, [pedidoId]);
 
+    const handleConcluirPedido = async () => {
+        try {
+            setAtualizando(true);
+            const API = api() as any;
+
+            if (typeof API.update_order_status === "function") {
+                await API.update_order_status(pedidoId, "Concluído");
+            } else {
+                const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://projeto-mousse.onrender.com";
+                await fetch(`${backendUrl}/update_order_status.php`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: pedidoId, status: "Concluído" }),
+                });
+            }
+
+            // Redireciona de volta para o painel de administração após concluir
+            router.push("/admin");
+        } catch (err) {
+            console.error("Erro ao concluir pedido:", err);
+            alert("Erro ao atualizar o status do pedido.");
+        } finally {
+            setAtualizando(false);
+        }
+    };
+
     return (
         <div className={`${figmaStyles.adminContent} h-full mx-auto overflow-auto p-5 text-white max-w-md`}>
-            {/* Cabeçalho de Perfil */}
+            {/* Cabeçalho do Perfil */}
             <div className="flex items-center gap-3 justify-center mb-6">
                 <FigmaUserIcon />
                 <span className="text-xl font-bold text-white">Admin.</span>
             </div>
 
-            {/* Card com os detalhes do pedido */}
+            {/* Cartão com os detalhes do pedido */}
             <section className="bg-[#2a1714]/80 backdrop-blur-sm border border-[#f4a8b8]/30 rounded-2xl p-6 shadow-xl text-white">
                 <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#f4a8b8]/20">
-                    <Link href="/admin/pedidos" className="text-[#f4a8b8] hover:text-white transition">
+                    <Link href="/admin" className="text-[#f4a8b8] hover:text-white transition">
                         <ArrowLeft size={22} />
                     </Link>
                     <h2 className="text-xl font-bold text-white">
@@ -114,9 +143,19 @@ export default function DetalhesPedidoAdmin({ params }: { params: Promise<{ id: 
                         <div className="pt-2 border-t border-[#f4a8b8]/20 flex justify-between items-center text-xs text-white/80">
                             <span>Data: {pedido.data}</span>
                             <span className="bg-[#f4a8b8] text-[#3d231d] font-bold px-2.5 py-1 rounded-full text-xs">
-                                {pedido.status}
+                                {pedido.status || "Pendente"}
                             </span>
                         </div>
+
+                        {/* Botão Concluir Pedido */}
+                        <button
+                            onClick={handleConcluirPedido}
+                            disabled={atualizando || pedido.status === "Concluído"}
+                            className="w-full mt-4 py-3 px-4 rounded-xl bg-[#f4a8b8] hover:bg-[#e892a2] text-[#3d231d] font-bold transition text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50 cursor-pointer"
+                        >
+                            <CheckCircle size={18} />
+                            {atualizando ? "A concluir..." : "Concluir Pedido"}
+                        </button>
                     </div>
                 )}
             </section>
