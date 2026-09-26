@@ -70,9 +70,8 @@ main {
   flex: 1;
 }
 
-/* Fundo Gradiente Geral: Chocolate ao Morango */
+/* Fundo Sólido: Marrom Chocolate */
 body {
-  background: linear-gradient(135deg, #3d231d 0%, #2b1815 65%, #f4a8b8 100%);
-  background-attachment: fixed;
+  background-color: var(--marrom-chocolate);
   color: #ffffff;
 }
