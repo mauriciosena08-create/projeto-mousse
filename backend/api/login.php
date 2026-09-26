@@ -28,12 +28,12 @@ if (empty($nome) || empty($senha)) {
 }
 
 try {
-    $stmt = $db->prepare("SELECT * FROM usuarios WHERE nome = :nome");
-    $stmt->execute([':nome' => $nome]);
-    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+    $res = execute_turso_query("SELECT * FROM usuarios WHERE nome = ?", [$nome]);
+    $usuarios = turso_fetch_assoc($res);
+    $usuario = $usuarios[0] ?? null;
 
     if ($usuario && password_verify($senha, $usuario['senha'])) {
-        unset($usuario['senha']); // Remove o hash da senha por segurança
+        unset($usuario['senha']);
 
         echo json_encode([
             "sucesso" => true,
@@ -44,7 +44,7 @@ try {
         http_response_code(401);
         echo json_encode(["sucesso" => false, "mensagem" => "Usuário ou senha incorretos."]);
     }
-} catch (PDOException $e) {
+} catch (Exception $e) {
     http_response_code(500);
     echo json_encode(["sucesso" => false, "mensagem" => "Erro interno: " . $e->getMessage()]);
 }
