@@ -78,6 +78,32 @@ export default function DetalhesPedidoAdmin({ params }: { params: Promise<{ id: 
         }
     };
 
+    // Função para tratar fuso horário (UTC -> UTC-3 Horário de Brasília)
+    const formatarData = (dataRaw?: string) => {
+        if (!dataRaw) return "N/A";
+        try {
+            // Trata strings de data vindas do PHP (YYYY-MM-DD HH:MM:SS) ou ISO
+            const strFormatada = dataRaw.includes("T")
+                ? dataRaw
+                : dataRaw.replace(" ", "T") + "-03:00";
+
+            const date = new Date(strFormatada);
+            if (isNaN(date.getTime())) return dataRaw;
+
+            return date.toLocaleString("pt-BR", {
+                timeZone: "America/Sao_Paulo",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+            });
+        } catch (e) {
+            return dataRaw;
+        }
+    };
+
     // 1. Extração do nome do cliente em todas as chaves possíveis do DB
     const nomeCliente = pedido
         ? pedido.nome ||
@@ -175,7 +201,7 @@ export default function DetalhesPedidoAdmin({ params }: { params: Promise<{ id: 
 
                         {/* Data e Status */}
                         <div className="pt-2 border-t border-[#f4a8b8]/20 flex justify-between items-center text-xs text-white/80">
-                            <span>Data: {pedido.data || pedido.created_at || "N/A"}</span>
+                            <span>Data: {formatarData(pedido.data || pedido.created_at)}</span>
                             <span className="bg-[#f4a8b8] text-[#3d231d] font-bold px-2.5 py-1 rounded-full text-xs">
                                 {pedido.status || "Pendente"}
                             </span>
