@@ -33,7 +33,7 @@ export default function Carrinho() {
             return;
         }
 
-        const nomeCliente = usuario?.nome || usuario?.cliente;
+        const nomeCliente = usuario?.nome || usuario?.cliente || usuario?.usuario;
         if (!nomeCliente) {
             alert("Sessão inválida. Por favor, faça login novamente.");
             router.push("/login");
@@ -45,25 +45,46 @@ export default function Carrinho() {
             const API = api() as any;
 
             const itensFormatados = carrinho.map((item: any) => ({
+                produto_id: item.id,
                 produto: item.produto,
-                quantidade: item.quant || item.quantidade,
+                quantidade: item.quant || item.quantidade || 1,
             }));
+
+            // Payload completo contendo todas as variações de chaves esperadas pelo backend
+            const payloadPedido = {
+                nome: nomeCliente,
+                cliente: nomeCliente,
+                usuario_nome: nomeCliente,
+                comprador: nomeCliente,
+                usuario_id: usuario.id,
+                curso: usuario.curso || "",
+                periodo: usuario.periodo || "",
+                itens: itensFormatados,
+                data: new Date().toISOString(),
+                status: "Pendente",
+            };
 
             // Método da API
             const criarPedido = API.create_order || API.add_order || API.pedir || API.post_order;
             
             if (typeof criarPedido === "function") {
-                // Envia o cliente junto aos itens
-                await criarPedido({ 
-                    cliente: nomeCliente,
-                    usuario_id: usuario.id,
-                    itens: itensFormatados 
+                await criarPedido(payloadPedido);
+            } else {
+                // Fallback via Fetch Direto
+                const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://projeto-mousse.onrender.com";
+                await fetch(`${backendUrl}/create_order.php`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payloadPedido),
                 });
             }
 
-            // Limpa o armazenamento local do carrinho
+            // Limpa o armazenamento local do carrinho e o estado do atom
             localStorage.removeItem("carrinho");
             localStorage.removeItem("cart");
+            if (typeof carrinhoHook.setCarrinho === "function") {
+                carrinhoHook.setCarrinho([]);
+            }
 
             alert("Pedido confirmado com sucesso!");
 
@@ -89,17 +110,17 @@ export default function Carrinho() {
                         <div className="flex flex-wrap justify-around w-full gap-4">
                             {carrinho.map((item: any) => (
                                <Product
-    key={item.produto}
-    title={item.produto}
-    {...({
-        imageUrl: item.imagem || item.image || item.img,
-        imagem: item.imagem || item.image || item.img,
-        image: item.imagem || item.image || item.img,
-        img: item.imagem || item.image || item.img,
-    } as any)}
-    description={`Quantidade: ${item.quant || item.quantidade}`}
-    inCart
-/>
+                                    key={item.produto}
+                                    title={item.produto}
+                                    {...({
+                                        imageUrl: item.imagem || item.image || item.img,
+                                        imagem: item.imagem || item.image || item.img,
+                                        image: item.imagem || item.image || item.img,
+                                        img: item.imagem || item.image || item.img,
+                                    } as any)}
+                                    description={`Quantidade: ${item.quant || item.quantidade}`}
+                                    inCart
+                                />
                             ))}
                         </div>
 
@@ -107,7 +128,7 @@ export default function Carrinho() {
                             type="button"
                             onClick={handleConfirmarPedido}
                             disabled={enviando}
-                            className="underline w-full text-center text-white cursor-pointer text-lg font-medium mt-6 disabled:opacity-50"
+                            className="w-full max-w-xs py-3 px-4 rounded-xl bg-[#f4a8b8] hover:bg-[#e892a2] text-[#3d231d] font-bold transition text-center text-lg mt-6 shadow-md disabled:opacity-50 cursor-pointer"
                         >
                             {enviando ? "Confirmando pedido..." : "Confirmar pedido"}
                         </button>
