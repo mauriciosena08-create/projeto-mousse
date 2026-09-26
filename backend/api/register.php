@@ -30,16 +30,14 @@ if (empty($nome) || empty($senha) || empty($curso) || empty($periodo)) {
 }
 
 try {
-    $stmt = $db->prepare("INSERT INTO usuarios (nome, senha, curso, periodo) VALUES (:nome, :senha, :curso, :periodo)");
-    $stmt->execute([
-        ':nome'    => $nome,
-        ':senha'   => password_hash($senha, PASSWORD_DEFAULT),
-        ':curso'   => $curso,
-        ':periodo' => $periodo
-    ]);
+    $hash = password_hash($senha, PASSWORD_DEFAULT);
+    execute_turso_query(
+        "INSERT INTO usuarios (nome, senha, curso, periodo) VALUES (?, ?, ?, ?)",
+        [$nome, $hash, $curso, $periodo]
+    );
 
     echo json_encode(["sucesso" => true, "mensagem" => "Cadastro realizado com sucesso!"]);
-} catch (PDOException $e) {
+} catch (Exception $e) {
     http_response_code(500);
     echo json_encode(["sucesso" => false, "mensagem" => "Erro ao salvar no banco: " . $e->getMessage()]);
 }
