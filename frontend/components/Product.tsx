@@ -11,7 +11,7 @@ interface Props {
     image?: string;
     btnAdd?: boolean;
     inCart?: boolean;
-    onAdd?: () => void; // <--- Propriedade declarada para resolver o erro no Vercel
+    onAdd?: (quantidade: number) => void; // Permite passar a quantidade selecionada
 }
 
 export default function Product({
@@ -38,15 +38,16 @@ export default function Product({
 
     const imageSource = image && image.trim() !== "" ? image : "/placeholder.png";
 
-    function adicionarAoCarrinho() {
-        adicionarProduto({
-            produto: title,
-            quant,
-        });
-
-        // Chama a função onAdd se ela tiver sido fornecida pelo componente pai
+    function handleAdicionar() {
         if (onAdd) {
-            onAdd();
+            // Repassa a quantidade selecionada para o pai (Home) gerir os limites e persistência
+            onAdd(quant);
+        } else {
+            // Fallback para caso o componente seja utilizado sem o evento onAdd
+            adicionarProduto({
+                produto: title,
+                quant,
+            });
         }
     }
 
@@ -56,7 +57,6 @@ export default function Product({
                 produto: title,
                 quant: 1,
             });
-
             return;
         }
 
@@ -69,7 +69,6 @@ export default function Product({
                 produto: title,
                 quant: 1,
             });
-
             return;
         }
 
@@ -138,8 +137,9 @@ export default function Product({
                 {/* Só aparece fora do carrinho */}
                 {btnAdd && !inCart && (
                     <button
-                        className="bg-gray-500 px-2 py-4 rounded-2xl cursor-pointer"
-                        onClick={adicionarAoCarrinho}
+                        type="button"
+                        className="bg-gray-500 px-2 py-4 rounded-2xl cursor-pointer text-white font-bold hover:bg-gray-600 transition"
+                        onClick={handleAdicionar}
                     >
                         Adicionar ao carrinho
                     </button>
