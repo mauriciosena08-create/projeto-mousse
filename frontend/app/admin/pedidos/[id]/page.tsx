@@ -78,31 +78,40 @@ export default function DetalhesPedidoAdmin({ params }: { params: Promise<{ id: 
         }
     };
 
-    // Função para formatar a data exatamente como gravada no banco
+    // Função para converter o horário UTC do backend para o fuso de Brasília (UTC-3)
     const formatarData = (dataRaw?: string) => {
         if (!dataRaw) return "N/A";
 
-        // Formato SQL "YYYY-MM-DD HH:MM:SS"
-        const partes = dataRaw.split(" ");
-        if (partes.length === 2) {
-            const [data, hora] = partes;
-            const [ano, mes, dia] = data.split("-");
-            if (ano && mes && dia) {
-                return `${dia}/${mes}/${ano}, ${hora}`;
-            }
-        }
+        try {
+            let isoString = dataRaw;
 
-        // Formato ISO "YYYY-MM-DDTHH:MM:SS"
-        if (dataRaw.includes("T")) {
-            const [data, horaComResto] = dataRaw.split("T");
-            const hora = horaComResto.substring(0, 8);
-            const [ano, mes, dia] = data.split("-");
-            if (ano && mes && dia) {
-                return `${dia}/${mes}/${ano}, ${hora}`;
+            // Se for string SQL "YYYY-MM-DD HH:MM:SS", ajusta para ISO com indicador UTC "Z"
+            if (!dataRaw.includes("T")) {
+                isoString = dataRaw.replace(" ", "T") + "Z";
+            } else if (!dataRaw.endsWith("Z") && !dataRaw.includes("+")) {
+                isoString = dataRaw + "Z";
             }
-        }
 
-        return dataRaw;
+            const dataObj = new Date(isoString);
+
+            if (isNaN(dataObj.getTime())) {
+                return dataRaw;
+            }
+
+            // Converte para o fuso horário oficial de Brasília
+            return new Intl.DateTimeFormat("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                timeZone: "America/Sao_Paulo",
+            }).format(dataObj);
+        } catch (e) {
+            console.error("Erro ao formatar data:", e);
+            return dataRaw;
+        }
     };
 
     // 1. Extração do nome do cliente em todas as chaves possíveis do DB
