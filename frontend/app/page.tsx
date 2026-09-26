@@ -76,12 +76,12 @@ export default function Home() {
         };
     }, [carregarProdutos]);
 
-    const handleAddToCart = (produto: Produto, quantidadeParaAdicionar: number = 1) => {
-        const qtdDesejada = Number(quantidadeParaAdicionar) || 1;
+    const handleAddToCart = (produto: Produto, quantidadeAdicionar: number = 1) => {
+        const qtdAAdicionar = Number(quantidadeAdicionar) > 0 ? Number(quantidadeAdicionar) : 1;
         const nomeProduto = produto.produto || produto.nome || "Produto";
         const imagemUrl = produto.imagem || produto.image || produto.img || "";
 
-        // Obtém a quantidade total em estoque disponível no servidor
+        // Obtém o estoque limite disponível do produto
         const estoqueMaximo = Math.max(
             0,
             produto.quantidade_disponivel ??
@@ -101,36 +101,35 @@ export default function Home() {
             (i: any) => i.id === produto.id || i.produto === nomeProduto
         );
 
-        // Quantidade total que já está no carrinho
+        // Quantidade que o usuário já possui no carrinho
         const qtdJaNoCarrinho = indexExistente >= 0
             ? Number(carrinhoAtual[indexExistente].quant || carrinhoAtual[indexExistente].quantidade || 0)
             : 0;
 
-        const novaQuantidadeTotal = qtdJaNoCarrinho + qtdDesejada;
+        // Total que ficaria no carrinho se adicionarmos a quantidade desejada
+        const totalProposto = qtdJaNoCarrinho + qtdAAdicionar;
 
-        // TRAVA DE ESTOQUE: Se a soma ultrapassar o limite disponível, exibe o aviso de erro e cancela
-        if (novaQuantidadeTotal > estoqueMaximo) {
+        // TRAVA DE ESTOQUE: Se ultrapassar o total em estoque, exibe erro e aborta
+        if (totalProposto > estoqueMaximo) {
             setMensagemSucesso(null);
             setMensagemErro(
                 `Limite em estoque atingido! (${estoqueMaximo} disponíve${estoqueMaximo === 1 ? 'l' : 'is'})`
             );
-            setTimeout(() => {
-                setMensagemErro(null);
-            }, 3000);
+            setTimeout(() => setMensagemErro(null), 3000);
             return;
         }
 
         const itemCarrinho = {
             id: produto.id,
             produto: nomeProduto,
-            quant: novaQuantidadeTotal,
-            quantidade: novaQuantidadeTotal,
+            quant: totalProposto,
+            quantidade: totalProposto,
             imagem: imagemUrl,
             image: imagemUrl,
             img: imagemUrl,
         };
 
-        // Salva no localStorage
+        // Atualiza no localStorage
         if (indexExistente >= 0) {
             carrinhoAtual[indexExistente] = itemCarrinho;
         } else {
@@ -143,20 +142,17 @@ export default function Home() {
             console.error("Erro ao salvar carrinho no localStorage:", e);
         }
 
-        // Atualiza o estado/atom do carrinho
-        if (typeof carrinhoHook.adicionarProduto === "function") {
-            carrinhoHook.adicionarProduto(itemCarrinho);
-        } else if (typeof carrinhoHook.setCarrinho === "function") {
+        // Atualiza Estado/Atom
+        if (typeof carrinhoHook.setCarrinho === "function") {
             carrinhoHook.setCarrinho(carrinhoAtual);
+        } else if (typeof carrinhoHook.adicionarProduto === "function") {
+            carrinhoHook.adicionarProduto(itemCarrinho);
         }
 
         // Mensagem de sucesso
         setMensagemErro(null);
-        setMensagemSucesso(`${qtdDesejada}x ${nomeProduto} adicionado(s) ao carrinho!`);
-
-        setTimeout(() => {
-            setMensagemSucesso(null);
-        }, 3000);
+        setMensagemSucesso(`${qtdAAdicionar}x ${nomeProduto} adicionado(s) ao carrinho!`);
+        setTimeout(() => setMensagemSucesso(null), 3000);
     };
 
     return (
@@ -165,14 +161,14 @@ export default function Home() {
                 Conheça nossos doces!
             </h1>
 
-            {/* Pop-up / Toast de sucesso */}
+            {/* Toast de sucesso */}
             {mensagemSucesso && (
-                <div className="fixed top-5 right-5 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg transition-all animate-bounce">
+                <div className="fixed top-5 right-5 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg transition-all animate-bounce font-bold">
                     {mensagemSucesso}
                 </div>
             )}
 
-            {/* Pop-up / Toast de erro (Limite de estoque) */}
+            {/* Toast de erro */}
             {mensagemErro && (
                 <div className="fixed top-5 right-5 z-50 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg transition-all animate-bounce font-bold">
                     {mensagemErro}
@@ -208,8 +204,8 @@ export default function Home() {
                                 description={`Disponível: ${quantidade}`}
                                 image={imagemUrl}
                                 btnAdd={quantidade > 0}
-                                onAdd={(qtdSelecionada?: number) =>
-                                    handleAddToCart(item, qtdSelecionada || 1)
+                                onAdd={(qtdDoCard?: number) =>
+                                    handleAddToCart(item, qtdDoCard || 1)
                                 }
                             />
                         );
