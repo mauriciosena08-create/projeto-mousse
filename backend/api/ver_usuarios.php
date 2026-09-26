@@ -1,27 +1,35 @@
 <?php
-// Configurações de CORS para permitir a visualização
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Inclui a sua conexão com o SQLite
-require_once "database.php"; 
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+ob_start();
+error_reporting(0);
+ini_set('display_errors', 0);
+
+require_once __DIR__ . '/database.php';
+ob_clean();
 
 try {
-    // Consulta todos os registros da tabela usuarios
-    $stmt = $db->query("SELECT id, nome, curso, periodo FROM usuarios");
-    $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Procura todos os utilizadores (omitindo a hash da senha por segurança)
+    $res = execute_turso_query("SELECT id, nome, curso, periodo, tipo FROM usuarios ORDER BY id DESC");
+    $usuarios = turso_fetch_assoc($res);
 
-    // Exibe os dados em formato JSON organizado
     echo json_encode([
-        "status" => "sucesso",
-        "total" => count($usuarios),
-        "dados" => $usuarios
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-} catch (PDOException $e) {
+        "sucesso" => true,
+        "usuarios" => $usuarios
+    ]);
+} catch (Exception $e) {
+    http_response_code(500);
     echo json_encode([
-        "status" => "erro",
-        "mensagem" => $e->getMessage()
+        "sucesso" => false,
+        "mensagem" => "Erro ao procurar utilizadores: " . $e->getMessage()
     ]);
 }
 ?>
