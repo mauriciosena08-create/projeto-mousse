@@ -75,7 +75,8 @@ export default function Home() {
         };
     }, [carregarProdutos]);
 
-    const handleAddToCart = (produto: Produto, qtdSelecionada: number = 1) => {
+    const handleAddToCart = (produto: Produto) => {
+        const qtdSelecionada = 1;
         const nomeProduto = produto.produto || produto.nome || "Produto";
         const imagemUrl = produto.imagem || produto.image || produto.img || "";
 
@@ -96,7 +97,7 @@ export default function Home() {
             carrinhoHook.setCarrinho((prev: any[]) => [...(prev || []), itemCarrinho]);
         }
 
-        // 2. Salva também no localStorage para garantir persistência
+        // 2. Salva no localStorage para garantir persistência
         try {
             const carrinhoAtual = JSON.parse(localStorage.getItem("carrinho") || "[]");
             const indexExistente = carrinhoAtual.findIndex((i: any) => i.produto === nomeProduto);
@@ -165,7 +166,7 @@ export default function Home() {
                                 description={`Disponível: ${quantidade}`}
                                 image={imagemUrl}
                                 btnAdd={quantidade > 0}
-                                onAdd={(qtd: number) => handleAddToCart(item, typeof qtd === "number" ? qtd : 1)}
+                                onAdd={() => handleAddToCart(item)}
                             />
                         );
                     })}
