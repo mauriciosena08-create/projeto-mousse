@@ -27,6 +27,7 @@ interface EstoqueResponse {
 export default function Home() {
     const [produtos, setProdutos] = useState<Produto[]>([]);
     const [loading, setLoading] = useState(true);
+    const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
 
     const carregarProdutos = useCallback(async () => {
         try {
@@ -34,7 +35,6 @@ export default function Home() {
             const API = api();
             const data: EstoqueResponse = await API.get_stock();
 
-            // Extrai a lista do campo correto vindo do PHP (estoque, produtos ou array direto)
             let lista: Produto[] = [];
 
             if (data && Array.isArray(data.estoque)) {
@@ -57,7 +57,6 @@ export default function Home() {
     useEffect(() => {
         carregarProdutos();
 
-        // Recarrega se a aba ganhar foco ou voltar da navegação
         const handleFocus = () => carregarProdutos();
         const handleVisibility = () => {
             if (document.visibilityState === "visible") {
@@ -74,11 +73,28 @@ export default function Home() {
         };
     }, [carregarProdutos]);
 
+    const handleAddToCart = (produto: Produto) => {
+        // Exibe o aviso
+        setMensagemSucesso("Produto adicionado com sucesso!");
+
+        // Remove a mensagem automaticamente após 3 segundos
+        setTimeout(() => {
+            setMensagemSucesso(null);
+        }, 3000);
+    };
+
     return (
-        <section>
+        <section className="relative">
             <h1 className="text-white font-bold text-2xl my-5 text-center">
                 Conheça nossos doces!
             </h1>
+
+            {/* Pop-up / Toast de sucesso */}
+            {mensagemSucesso && (
+                <div className="fixed top-5 right-5 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg transition-all animate-bounce">
+                    {mensagemSucesso}
+                </div>
+            )}
 
             {loading ? (
                 <p className="text-white text-center">
@@ -100,7 +116,6 @@ export default function Home() {
                             0
                         );
                         
-                        // Captura a URL da imagem (ou o fallback para o placeholder)
                         const imagemUrl = item.imagem || item.image || item.img || "/placeholder.png";
 
                         return (
@@ -110,6 +125,7 @@ export default function Home() {
                                 description={`Disponível: ${quantidade}`}
                                 image={imagemUrl}
                                 btnAdd={quantidade > 0}
+                                onAdd={() => handleAddToCart(item)}
                             />
                         );
                     })}
