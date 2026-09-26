@@ -91,6 +91,7 @@ export default function Carrinho() {
                                 <Product
                                     key={item.produto}
                                     title={item.produto}
+                                    imageUrl={item.imagem || item.image || item.img}
                                     description={`Quantidade: ${item.quant || item.quantidade}`}
                                     inCart
                                 />
