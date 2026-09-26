@@ -12,11 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 try {
     require_once __DIR__ . '/database.php';
 
-    // Garante que o PDO lance exceções em erros do SQL
-    if (isset($db)) {
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    }
-
     $input = file_get_contents("php://input");
     $data = json_decode($input, true);
 
@@ -28,7 +23,6 @@ try {
 
     $cliente = trim($data['cliente'] ?? $data['nome'] ?? $data['usuario_nome'] ?? '');
 
-    // BLOQUEIO: Se não houver cliente ou for Anônimo, impede a criação do pedido
     if (empty($cliente) || strtolower($cliente) === 'anônimo' || strtolower($cliente) === 'anonimo') {
         http_response_code(401);
         echo json_encode([
@@ -40,21 +34,15 @@ try {
 
     $itensArray = $data['itens'] ?? [];
     $itensJson = json_encode($itensArray);
-    $total = $data['total'] ?? 0;
+    $total = (float)($data['total'] ?? 0);
     $status = 'Pendente';
     $dataHora = date('Y-m-d H:i:s');
 
-    // 1. Grava o pedido com a coluna status
-    $stmt = $db->prepare("INSERT INTO pedidos (cliente, itens, total, status, data) VALUES (:cliente, :itens, :total, :status, :data)");
-    $stmt->execute([
-        ':cliente' => $cliente,
-        ':itens'   => $itensJson,
-        ':total'   => $total,
-        ':status'  => $status,
-        ':data'    => $dataHora
-    ]);
+    execute_turso_query(
+        "INSERT INTO pedidos (cliente, itens, total, status, data) VALUES (?, ?, ?, ?, ?)",
+        [$cliente, $itensJson, $total, $status, $dataHora]
+    );
 
-    // 2. Atualiza cada item no estoque
     if (is_array($itensArray)) {
         foreach ($itensArray as $item) {
             $nomeProduto = trim($item['produto'] ?? $item['nome'] ?? '');
@@ -63,25 +51,16 @@ try {
 
             if ($qtdComprada <= 0) continue;
 
-            // Tenta atualizar pelo ID (se fornecido)
             if ($idProduto) {
-                try {
-                    $stmtId = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE id = :id");
-                    $stmtId->execute([':qtd' => $qtdComprada, ':id' => $idProduto]);
-                } catch (PDOException $e) {
-                    $stmtId = $db->prepare("UPDATE estoque SET quantidade = quantidade - :qtd WHERE id = :id");
-                    $stmtId->execute([':qtd' => $qtdComprada, ':id' => $idProduto]);
-                }
-            } 
-            // Se não tiver ID, atualiza pelo nome do produto
-            elseif (!empty($nomeProduto)) {
-                try {
-                    $stmtNome = $db->prepare("UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - :qtd WHERE LOWER(produto) = LOWER(:produto)");
-                    $stmtNome->execute([':qtd' => $qtdComprada, ':produto' => $nomeProduto]);
-                } catch (PDOException $e) {
-                    $stmtAlt = $db->prepare("UPDATE estoque SET quantidade = quantidade - :qtd WHERE LOWER(produto) = LOWER(:produto)");
-                    $stmtAlt->execute([':qtd' => $qtdComprada, ':produto' => $nomeProduto]);
-                }
+                execute_turso_query(
+                    "UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - ? WHERE id = ?",
+                    [$qtdComprada, (int)$idProduto]
+                );
+            } elseif (!empty($nomeProduto)) {
+                execute_turso_query(
+                    "UPDATE estoque SET quantidade_disponivel = quantidade_disponivel - ? WHERE LOWER(produto) = LOWER(?)",
+                    [$qtdComprada, $nomeProduto]
+                );
             }
         }
     }
