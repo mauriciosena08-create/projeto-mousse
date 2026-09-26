@@ -43,7 +43,7 @@ export default function Carrinho() {
         try {
             setEnviando(true);
 
-            // Concatena os nomes dos produtos para formatos que esperam uma string simples
+            // Resumo em texto simples caso o PHP salve tudo em uma coluna "produto"
             const resumoProdutos = carrinho
                 .map((i: any) => `${i.quant || i.quantidade || 1}x ${i.produto}`)
                 .join(", ");
@@ -52,25 +52,23 @@ export default function Carrinho() {
                 produto_id: item.id,
                 produto: item.produto,
                 quantidade: item.quant || item.quantidade || 1,
-                quant: item.quant || item.quantidade || 1,
             }));
 
-            // Payload híbrido completo (garante compatibilidade com tabelas relacionais ou simples)
+            // Payload híbrido enviado para save_order.php
             const payloadPedido = {
-                // Informações do Cliente
+                // Dados do cliente
                 nome: nomeCliente,
                 cliente: nomeCliente,
                 usuario_nome: nomeCliente,
-                comprador: nomeCliente,
                 usuario_id: usuario.id,
                 curso: usuario.curso || "",
                 periodo: usuario.periodo || "",
 
-                // Estrutura de Lista de Itens
+                // Dados dos itens
                 itens: itensFormatados,
                 produtos: itensFormatados,
 
-                // Estrutura de Texto Plano (Fallback para PHP/DB legados)
+                // Fallbacks em texto simples
                 produto: resumoProdutos,
                 quantidade: carrinho.reduce(
                     (total: number, item: any) => total + (item.quant || item.quantidade || 1),
@@ -84,8 +82,8 @@ export default function Carrinho() {
             const backendUrl =
                 process.env.NEXT_PUBLIC_API_URL || "https://projeto-mousse.onrender.com";
 
-            // Envio direto via fetch para garantir que todos os campos do JSON são transmitidos
-            const response = await fetch(`${backendUrl}/create_order.php`, {
+            // Envio direto para save_order.php
+            const response = await fetch(`${backendUrl}/save_order.php`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payloadPedido),
@@ -95,7 +93,7 @@ export default function Carrinho() {
                 throw new Error("Erro na comunicação com o servidor.");
             }
 
-            // Limpa o armazenamento local do carrinho e o estado do atom
+            // Limpa o carrinho
             localStorage.removeItem("carrinho");
             localStorage.removeItem("cart");
             if (typeof carrinhoHook.setCarrinho === "function") {
