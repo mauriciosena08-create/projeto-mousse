@@ -53,9 +53,18 @@ export default function PedidosAdmin() {
         carregarPedidos();
     }, []);
 
-    const pendentes = Array.isArray(pedidos)
-        ? pedidos.filter((pedido) => pedido.status === "Pendente").length
-        : 0;
+    // Filtra apenas os pedidos que ainda NÃO foram concluídos/entregues
+    const pedidosPendentesList = Array.isArray(pedidos)
+        ? pedidos.filter(
+            (pedido) =>
+                pedido.status !== "Concluído" &&
+                pedido.status !== "Concluido" &&
+                pedido.status !== "Entregue" &&
+                pedido.status !== "concluido"
+        )
+        : [];
+
+    const pendentesCount = pedidosPendentesList.length;
 
     return (
         <>
@@ -74,7 +83,7 @@ export default function PedidosAdmin() {
                         </Link>
 
                         <span>
-                            Pedidos ({pendentes} pendentes)
+                            Pedidos ({pendentesCount} pendentes)
                         </span>
                     </div>
 
@@ -84,12 +93,12 @@ export default function PedidosAdmin() {
                             <p className="text-center">
                                 Carregando pedidos...
                             </p>
-                        ) : !Array.isArray(pedidos) || pedidos.length === 0 ? (
+                        ) : pedidosPendentesList.length === 0 ? (
                             <p className="text-center">
-                                Nenhum pedido encontrado.
+                                Nenhum pedido pendente encontrado.
                             </p>
                         ) : (
-                            pedidos.map((pedido) => (
+                            pedidosPendentesList.map((pedido) => (
                                 <Link
                                     href={`/admin/pedidos/${pedido.id}`}
                                     className={figmaStyles.adminOrder}
