@@ -129,7 +129,6 @@ export default function AdminOuPerfil() {
     router.push("/login");
   };
 
-  // Filtra apenas os pedidos PENDENTES (não concluídos)
   const pedidosPendentes = Array.isArray(pedidos)
     ? pedidos.filter(
         (p) =>
@@ -150,7 +149,6 @@ export default function AdminOuPerfil() {
 
   const totalPedidos = pedidosPendentes.length;
 
-  // VISÃO DE USUÁRIO COMUM / COMPRADOR
   if (!isAdmin) {
     return (
       <div className={`${figmaStyles.adminContent} h-full mx-auto overflow-auto p-5 text-center text-white`}>
@@ -159,7 +157,7 @@ export default function AdminOuPerfil() {
           <span className="text-xl font-bold">{perfilQualquer?.nome || "Comprador"}</span>
         </div>
 
-        <div className="mt-5 p-5 bg-purple-900/60 backdrop-blur-sm border border-purple-500/30 rounded-2xl text-white">
+        <div className="mt-5 p-5 bg-[#2a1714]/80 backdrop-blur-sm border border-[#f4a8b8]/30 rounded-2xl text-white shadow-lg">
           <h2 className="font-bold text-lg mb-2 text-white">Sua Conta</h2>
           <p className="text-sm opacity-80">Curso: {perfilQualquer?.curso || "N/A"}</p>
           <p className="text-sm opacity-80">Período: {perfilQualquer?.periodo || "N/A"}</p>
@@ -172,7 +170,6 @@ export default function AdminOuPerfil() {
     );
   }
 
-  // VISÃO DE ADMINISTRADOR
   return (
     <div className={`${figmaStyles.adminContent} max-w-md h-full mx-auto overflow-auto space-y-5 p-5 text-white`}>
       {/* PERFIL */}
@@ -187,21 +184,21 @@ export default function AdminOuPerfil() {
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col items-center">
           <label className="text-sm font-semibold mb-1 text-white">N° de Pedidos:</label>
-          <div className="w-full bg-purple-900/60 border border-purple-500/30 text-white font-bold text-center py-2 rounded-xl">
+          <div className="w-full bg-[#2a1714]/80 border border-[#f4a8b8]/30 text-white font-bold text-center py-2.5 rounded-xl shadow-md">
             {loading ? "..." : totalPedidos}
           </div>
         </div>
 
         <div className="flex flex-col items-center">
           <label className="text-sm font-semibold mb-1 text-white">Total em Estoque:</label>
-          <div className="w-full bg-purple-900/60 border border-purple-500/30 text-white font-bold text-center py-2 rounded-xl">
+          <div className="w-full bg-[#2a1714]/80 border border-[#f4a8b8]/30 text-white font-bold text-center py-2.5 rounded-xl shadow-md">
             {loading ? "..." : totalEstoque}
           </div>
         </div>
       </div>
 
       {/* PAINEL: ADICIONAR AO ESTOQUE */}
-      <div className="bg-purple-900/60 backdrop-blur-sm border border-purple-500/30 p-5 rounded-2xl shadow-lg">
+      <div className="bg-[#2a1714]/80 backdrop-blur-sm border border-[#f4a8b8]/30 p-5 rounded-2xl shadow-lg">
         <h2 className="text-center font-bold text-lg mb-4 text-white">
           Adicionar Produto ao Estoque
         </h2>
@@ -220,7 +217,7 @@ export default function AdminOuPerfil() {
               placeholder="Ex: Mousse de Morango"
               value={novoProduto}
               onChange={(e) => setNovoProduto(e.target.value)}
-              className="w-full p-2 rounded-lg bg-purple-950/80 text-white placeholder-purple-300/50 border border-purple-400/30 text-sm focus:outline-none focus:border-purple-400"
+              className="w-full p-2 rounded-lg bg-[#3d231d]/90 text-white placeholder-gray-300 border border-[#f4a8b8]/20 text-sm focus:outline-none focus:border-[#f4a8b8]"
               required
             />
           </div>
@@ -233,7 +230,7 @@ export default function AdminOuPerfil() {
                 min="1"
                 value={novaQuantidade}
                 onChange={(e) => setNovaQuantidade(Number(e.target.value))}
-                className="w-full p-2 rounded-lg bg-purple-950/80 text-white border border-purple-400/30 text-sm focus:outline-none focus:border-purple-400"
+                className="w-full p-2 rounded-lg bg-[#3d231d]/90 text-white border border-[#f4a8b8]/20 text-sm focus:outline-none focus:border-[#f4a8b8]"
                 required
               />
             </div>
@@ -245,7 +242,7 @@ export default function AdminOuPerfil() {
                 placeholder="https://..."
                 value={novaImagem}
                 onChange={(e) => setNovaImagem(e.target.value)}
-                className="w-full p-2 rounded-lg bg-purple-950/80 text-white placeholder-purple-300/50 border border-purple-400/30 text-sm focus:outline-none focus:border-purple-400"
+                className="w-full p-2 rounded-lg bg-[#3d231d]/90 text-white placeholder-gray-300 border border-[#f4a8b8]/20 text-sm focus:outline-none focus:border-[#f4a8b8]"
               />
             </div>
           </div>
@@ -253,7 +250,7 @@ export default function AdminOuPerfil() {
           <button
             type="submit"
             disabled={enviando}
-            className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-sm mt-2 disabled:opacity-50 shadow-md"
+            className="w-full py-2.5 px-4 rounded-xl bg-[#f4a8b8] hover:bg-[#e892a2] text-[#3d231d] font-bold transition text-sm mt-2 disabled:opacity-50 shadow-md"
           >
             {enviando ? "Salvando..." : "+ Cadastrar no Estoque"}
           </button>
@@ -261,7 +258,7 @@ export default function AdminOuPerfil() {
       </div>
 
       {/* LISTA DE PEDIDOS RECEBIDOS */}
-      <div className="bg-purple-900/60 backdrop-blur-sm border border-purple-500/30 p-5 rounded-2xl shadow-lg">
+      <div className="bg-[#2a1714]/80 backdrop-blur-sm border border-[#f4a8b8]/30 p-5 rounded-2xl shadow-lg">
         <h2 className="text-center font-bold text-lg mb-4 text-white">Pedidos Recebidos</h2>
 
         {loading ? (
@@ -273,14 +270,14 @@ export default function AdminOuPerfil() {
             {pedidosPendentes.map((pedido) => (
               <Link
                 href={`/admin/pedidos/${pedido.id}`}
-                className="block p-3 rounded-xl bg-purple-950/60 hover:bg-purple-950 border border-purple-400/20 text-white transition"
+                className="block p-3 rounded-xl bg-[#3d231d]/80 hover:bg-[#3d231d] border border-[#f4a8b8]/20 text-white transition"
                 key={pedido.id}
               >
                 <div className="flex justify-between items-center">
                   <strong>{pedido.produto || `Pedido #${pedido.id}`}</strong>
                   <span className="text-xs opacity-70">{pedido.data}</span>
                 </div>
-                <small className="text-xs text-purple-200 block mt-1">Clique para ver detalhes...</small>
+                <small className="text-xs text-[#f4a8b8] block mt-1">Clique para ver detalhes...</small>
               </Link>
             ))}
           </div>
@@ -290,7 +287,7 @@ export default function AdminOuPerfil() {
       {/* SAIR */}
       <button
         onClick={sair}
-        className="w-full bg-purple-900/60 hover:bg-red-600 border border-purple-500/30 text-white py-3 rounded-2xl font-bold transition shadow-md"
+        className="w-full bg-[#2a1714]/80 hover:bg-red-600 border border-[#f4a8b8]/30 text-white py-3 rounded-2xl font-bold transition shadow-md"
       >
         Sair
       </button>
