@@ -122,8 +122,25 @@ try {
         data TEXT
     )");
 
+    // Migrações preventivas para a tabela pedidos caso ela tenha sido criada previamente com menos colunas
+    try {
+        execute_turso_query("ALTER TABLE pedidos ADD COLUMN cliente TEXT");
+    } catch (Exception $e) {}
+
+    try {
+        execute_turso_query("ALTER TABLE pedidos ADD COLUMN itens TEXT");
+    } catch (Exception $e) {}
+
+    try {
+        execute_turso_query("ALTER TABLE pedidos ADD COLUMN total REAL");
+    } catch (Exception $e) {}
+
     try {
         execute_turso_query("ALTER TABLE pedidos ADD COLUMN status TEXT DEFAULT 'Pendente'");
+    } catch (Exception $e) {}
+
+    try {
+        execute_turso_query("ALTER TABLE pedidos ADD COLUMN data TEXT");
     } catch (Exception $e) {}
 
     // Tabela de Gastos / Despesas
