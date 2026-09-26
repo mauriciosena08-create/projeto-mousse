@@ -76,12 +76,12 @@ export default function Home() {
         };
     }, [carregarProdutos]);
 
-    const handleAddToCart = (produto: Produto) => {
-        const qtdSelecionada = 1;
+    const handleAddToCart = (produto: Produto, quantidadeParaAdicionar: number = 1) => {
+        const qtdDesejada = Number(quantidadeParaAdicionar) || 1;
         const nomeProduto = produto.produto || produto.nome || "Produto";
         const imagemUrl = produto.imagem || produto.image || produto.img || "";
-        
-        // Define o limite máximo em estoque para este produto
+
+        // Obtém a quantidade total em estoque disponível no servidor
         const estoqueMaximo = Math.max(
             0,
             produto.quantidade_disponivel ??
@@ -101,35 +101,40 @@ export default function Home() {
             (i: any) => i.id === produto.id || i.produto === nomeProduto
         );
 
-        // Calcula quantos itens já estão no carrinho
-        const qtdJaNoCarrinho = indexExistente >= 0 
-            ? (carrinhoAtual[indexExistente].quant || carrinhoAtual[indexExistente].quantidade || 0)
+        // Quantidade total que já está no carrinho
+        const qtdJaNoCarrinho = indexExistente >= 0
+            ? Number(carrinhoAtual[indexExistente].quant || carrinhoAtual[indexExistente].quantidade || 0)
             : 0;
 
-        // TRAVA: Verifica se a nova quantidade vai ultrapassar o estoque disponível
-        if (qtdJaNoCarrinho + qtdSelecionada > estoqueMaximo) {
-            setMensagemErro(`Limite em estoque atingido! (${estoqueMaximo} disp.)`);
+        const novaQuantidadeTotal = qtdJaNoCarrinho + qtdDesejada;
+
+        // TRAVA DE ESTOQUE: Se a soma ultrapassar o limite disponível, exibe o aviso de erro e cancela
+        if (novaQuantidadeTotal > estoqueMaximo) {
+            setMensagemSucesso(null);
+            setMensagemErro(
+                `Limite em estoque atingido! (${estoqueMaximo} disponíve${estoqueMaximo === 1 ? 'l' : 'is'})`
+            );
             setTimeout(() => {
                 setMensagemErro(null);
             }, 3000);
-            return; // Bloqueia a adição
+            return;
         }
 
         const itemCarrinho = {
             id: produto.id,
             produto: nomeProduto,
-            quant: qtdJaNoCarrinho + qtdSelecionada,
-            quantidade: qtdJaNoCarrinho + qtdSelecionada,
+            quant: novaQuantidadeTotal,
+            quantidade: novaQuantidadeTotal,
             imagem: imagemUrl,
             image: imagemUrl,
             img: imagemUrl,
         };
 
-        // 1. Atualiza no localStorage
+        // Salva no localStorage
         if (indexExistente >= 0) {
             carrinhoAtual[indexExistente] = itemCarrinho;
         } else {
-            carrinhoAtual.push({ ...itemCarrinho, quant: 1, quantidade: 1 });
+            carrinhoAtual.push(itemCarrinho);
         }
 
         try {
@@ -138,16 +143,16 @@ export default function Home() {
             console.error("Erro ao salvar carrinho no localStorage:", e);
         }
 
-        // 2. Atualiza via Hook/Atom
+        // Atualiza o estado/atom do carrinho
         if (typeof carrinhoHook.adicionarProduto === "function") {
-            carrinhoHook.adicionarProduto({ ...itemCarrinho, quant: 1, quantidade: 1 });
+            carrinhoHook.adicionarProduto(itemCarrinho);
         } else if (typeof carrinhoHook.setCarrinho === "function") {
             carrinhoHook.setCarrinho(carrinhoAtual);
         }
 
-        // Exibe o aviso de sucesso
+        // Mensagem de sucesso
         setMensagemErro(null);
-        setMensagemSucesso(`${nomeProduto} adicionado ao carrinho!`);
+        setMensagemSucesso(`${qtdDesejada}x ${nomeProduto} adicionado(s) ao carrinho!`);
 
         setTimeout(() => {
             setMensagemSucesso(null);
@@ -193,7 +198,7 @@ export default function Home() {
                             item.quant ??
                             0
                         );
-                        
+
                         const imagemUrl = item.imagem || item.image || item.img || "/placeholder.png";
 
                         return (
@@ -203,7 +208,9 @@ export default function Home() {
                                 description={`Disponível: ${quantidade}`}
                                 image={imagemUrl}
                                 btnAdd={quantidade > 0}
-                                onAdd={() => handleAddToCart(item)}
+                                onAdd={(qtdSelecionada?: number) =>
+                                    handleAddToCart(item, qtdSelecionada || 1)
+                                }
                             />
                         );
                     })}
