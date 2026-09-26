@@ -1,11 +1,9 @@
 <?php
-// Cabeçalhos CORS no topo do arquivo
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Resposta para pré-checagem OPTIONS do navegador
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -31,37 +29,29 @@ if (empty($produto) || $quantidade <= 0) {
 }
 
 try {
-    // Consulta se o produto já existe para somar a quantidade
-    $stmtCheck = $db->prepare("SELECT id, quantidade_disponivel, imagem FROM estoque WHERE LOWER(produto) = LOWER(:produto)");
-    $stmtCheck->execute([':produto' => $produto]);
-    $itemExistente = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+    $resCheck = execute_turso_query("SELECT id, quantidade_disponivel, imagem FROM estoque WHERE LOWER(produto) = LOWER(?)", [$produto]);
+    $itens = turso_fetch_assoc($resCheck);
+    $itemExistente = $itens[0] ?? null;
 
     $dataAtual = date('Y-m-d H:i:s');
 
     if ($itemExistente) {
-        $novaQtd = $itemExistente['quantidade_disponivel'] + $quantidade;
-        // Se enviou uma nova imagem, atualiza; caso contrário, mantém a existente
+        $novaQtd = (int)$itemExistente['quantidade_disponivel'] + $quantidade;
         $novaImagem = !empty($imagem) ? $imagem : ($itemExistente['imagem'] ?? '');
 
-        $stmtUpdate = $db->prepare("UPDATE estoque SET quantidade_disponivel = :qtd, imagem = :imagem, data = :data WHERE id = :id");
-        $stmtUpdate->execute([
-            ':qtd'    => $novaQtd,
-            ':imagem' => $novaImagem,
-            ':data'   => $dataAtual,
-            ':id'     => $itemExistente['id']
-        ]);
+        execute_turso_query(
+            "UPDATE estoque SET quantidade_disponivel = ?, imagem = ?, data = ? WHERE id = ?",
+            [$novaQtd, $novaImagem, $dataAtual, (int)$itemExistente['id']]
+        );
     } else {
-        $stmtInsert = $db->prepare("INSERT INTO estoque (produto, quantidade_disponivel, imagem, data) VALUES (:produto, :quantidade, :imagem, :data)");
-        $stmtInsert->execute([
-            ':produto'    => $produto,
-            ':quantidade' => $quantidade,
-            ':imagem'     => $imagem,
-            ':data'       => $dataAtual
-        ]);
+        execute_turso_query(
+            "INSERT INTO estoque (produto, quantidade_disponivel, imagem, data) VALUES (?, ?, ?, ?)",
+            [$produto, $quantidade, $imagem, $dataAtual]
+        );
     }
 
     echo json_encode(["sucesso" => true, "mensagem" => "Estoque atualizado com sucesso!"]);
-} catch (PDOException $e) {
+} catch (Exception $e) {
     http_response_code(500);
     echo json_encode(["sucesso" => false, "mensagem" => "Erro no banco: " . $e->getMessage()]);
 }
