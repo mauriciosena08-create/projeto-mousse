@@ -17,14 +17,14 @@ require_once __DIR__ . '/database.php';
 ob_clean();
 
 try {
-    $stmt = $db->query("SELECT * FROM estoque ORDER BY produto ASC");
-    $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $res = execute_turso_query("SELECT * FROM estoque ORDER BY produto ASC");
+    $produtos = turso_fetch_assoc($res);
 
     echo json_encode([
         "sucesso" => true,
         "estoque" => $produtos
     ]);
-} catch (PDOException $e) {
+} catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
         "sucesso" => false,
