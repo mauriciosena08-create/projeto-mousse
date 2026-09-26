@@ -11,6 +11,7 @@ interface Props {
     image?: string;
     btnAdd?: boolean;
     inCart?: boolean;
+    onAdd?: () => void; // <--- Propriedade declarada para resolver o erro no Vercel
 }
 
 export default function Product({
@@ -19,6 +20,7 @@ export default function Product({
     image,
     btnAdd = false,
     inCart = false,
+    onAdd,
 }: Props) {
     const {
         carrinho,
@@ -34,7 +36,6 @@ export default function Product({
 
     const quantCarrinho = produtoCarrinho?.quant ?? 0;
 
-    // Define a fonte da imagem (prioriza a prop recebida, depois tenta placeholder)
     const imageSource = image && image.trim() !== "" ? image : "/placeholder.png";
 
     function adicionarAoCarrinho() {
@@ -42,6 +43,11 @@ export default function Product({
             produto: title,
             quant,
         });
+
+        // Chama a função onAdd se ela tiver sido fornecida pelo componente pai
+        if (onAdd) {
+            onAdd();
+        }
     }
 
     function lessQuant() {
