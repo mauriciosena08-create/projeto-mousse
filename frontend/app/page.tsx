@@ -29,6 +29,7 @@ export default function Home() {
     const [produtos, setProdutos] = useState<Produto[]>([]);
     const [loading, setLoading] = useState(true);
     const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
+    const [mensagemErro, setMensagemErro] = useState<string | null>(null);
     const carrinhoHook = useCarrinho() as any;
 
     const carregarProdutos = useCallback(async () => {
@@ -79,46 +80,75 @@ export default function Home() {
         const qtdSelecionada = 1;
         const nomeProduto = produto.produto || produto.nome || "Produto";
         const imagemUrl = produto.imagem || produto.image || produto.img || "";
+        
+        // Define o limite máximo em estoque para este produto
+        const estoqueMaximo = Math.max(
+            0,
+            produto.quantidade_disponivel ??
+            produto.quantidade ??
+            produto.quant ??
+            0
+        );
+
+        let carrinhoAtual: any[] = [];
+        try {
+            carrinhoAtual = JSON.parse(localStorage.getItem("carrinho") || "[]");
+        } catch (e) {
+            carrinhoAtual = [];
+        }
+
+        const indexExistente = carrinhoAtual.findIndex(
+            (i: any) => i.id === produto.id || i.produto === nomeProduto
+        );
+
+        // Calcula quantos itens já estão no carrinho
+        const qtdJaNoCarrinho = indexExistente >= 0 
+            ? (carrinhoAtual[indexExistente].quant || carrinhoAtual[indexExistente].quantidade || 0)
+            : 0;
+
+        // TRAVA: Verifica se a nova quantidade vai ultrapassar o estoque disponível
+        if (qtdJaNoCarrinho + qtdSelecionada > estoqueMaximo) {
+            setMensagemErro(`Limite em estoque atingido! (${estoqueMaximo} disp.)`);
+            setTimeout(() => {
+                setMensagemErro(null);
+            }, 3000);
+            return; // Bloqueia a adição
+        }
 
         const itemCarrinho = {
             id: produto.id,
             produto: nomeProduto,
-            quant: qtdSelecionada,
-            quantidade: qtdSelecionada,
+            quant: qtdJaNoCarrinho + qtdSelecionada,
+            quantidade: qtdJaNoCarrinho + qtdSelecionada,
             imagem: imagemUrl,
             image: imagemUrl,
             img: imagemUrl,
         };
 
-        // 1. Atualiza via Hook/Atom
-        if (typeof carrinhoHook.adicionarProduto === "function") {
-            carrinhoHook.adicionarProduto(itemCarrinho);
-        } else if (typeof carrinhoHook.setCarrinho === "function") {
-            carrinhoHook.setCarrinho((prev: any[]) => [...(prev || []), itemCarrinho]);
+        // 1. Atualiza no localStorage
+        if (indexExistente >= 0) {
+            carrinhoAtual[indexExistente] = itemCarrinho;
+        } else {
+            carrinhoAtual.push({ ...itemCarrinho, quant: 1, quantidade: 1 });
         }
 
-        // 2. Salva no localStorage para garantir persistência
         try {
-            const carrinhoAtual = JSON.parse(localStorage.getItem("carrinho") || "[]");
-            const indexExistente = carrinhoAtual.findIndex((i: any) => i.produto === nomeProduto);
-
-            if (indexExistente >= 0) {
-                carrinhoAtual[indexExistente].quant = (carrinhoAtual[indexExistente].quant || 1) + qtdSelecionada;
-                carrinhoAtual[indexExistente].quantidade = carrinhoAtual[indexExistente].quant;
-                carrinhoAtual[indexExistente].imagem = imagemUrl;
-            } else {
-                carrinhoAtual.push(itemCarrinho);
-            }
-
             localStorage.setItem("carrinho", JSON.stringify(carrinhoAtual));
         } catch (e) {
             console.error("Erro ao salvar carrinho no localStorage:", e);
         }
 
-        // Exibe o aviso
+        // 2. Atualiza via Hook/Atom
+        if (typeof carrinhoHook.adicionarProduto === "function") {
+            carrinhoHook.adicionarProduto({ ...itemCarrinho, quant: 1, quantidade: 1 });
+        } else if (typeof carrinhoHook.setCarrinho === "function") {
+            carrinhoHook.setCarrinho(carrinhoAtual);
+        }
+
+        // Exibe o aviso de sucesso
+        setMensagemErro(null);
         setMensagemSucesso(`${nomeProduto} adicionado ao carrinho!`);
 
-        // Remove a mensagem automaticamente após 3 segundos
         setTimeout(() => {
             setMensagemSucesso(null);
         }, 3000);
@@ -134,6 +164,13 @@ export default function Home() {
             {mensagemSucesso && (
                 <div className="fixed top-5 right-5 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg transition-all animate-bounce">
                     {mensagemSucesso}
+                </div>
+            )}
+
+            {/* Pop-up / Toast de erro (Limite de estoque) */}
+            {mensagemErro && (
+                <div className="fixed top-5 right-5 z-50 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg transition-all animate-bounce font-bold">
+                    {mensagemErro}
                 </div>
             )}
 
