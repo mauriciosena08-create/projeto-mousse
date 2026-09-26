@@ -4,28 +4,45 @@
   --background: #111217;
   --cinza: #D9D9D9;
   --cinza-hover: #878484;
-  --roxo: #211824;
-  --roxo-claro: #342442;
+  
+  /* Cores Temáticas: Morango com Chocolate */
+  --marrom-chocolate: #3d231d;
+  --rosa-doce: #f4a8b8;
+  --rosa-doce-claro: #e892a2;
 }
 
-.bg-roxo{
-  background: var(--roxo);
+/* Fundo da Barra Superior (Header) */
+header {
+  background-color: var(--rosa-doce) !important;
+  color: #3d231d;
 }
 
-.bg-cinza{
+/* Fundo da Barra Inferior (Footer / Menu) */
+footer, nav {
+  background-color: var(--rosa-doce) !important;
+}
+
+/* Classes utilitárias com as cores de rosa doce */
+.bg-roxo,
+.bg-rosa-doce {
+  background-color: var(--rosa-doce);
+}
+
+.bg-roxo-claro,
+.bg-rosa-claro {
+  background-color: var(--rosa-doce-claro);
+}
+
+.bg-cinza {
   background: var(--cinza);
 }
 
-.bg-cinza-hover{
+.bg-cinza-hover {
   background: var(--cinza);
 }
 
 .btn:hover {
   background: var(--cinza-hover);
-}
-
-.bg-roxo-claro{
-  background: var(--roxo-claro);
 }
 
 input {
@@ -35,11 +52,12 @@ input {
   border: none;
   color: black;
 }
+
 input::placeholder {
   color: rgb(70, 68, 68);
 }
 
-.button{
+.button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,6 +70,7 @@ main {
   flex: 1;
 }
 
+/* Fundo Gradiente Geral: Chocolate ao Morango */
 body {
   background: linear-gradient(135deg, #3d231d 0%, #2b1815 65%, #f4a8b8 100%);
   background-attachment: fixed;
