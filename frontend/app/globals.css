@@ -53,8 +53,7 @@ main {
 }
 
 body {
-  min-height: 100dvh;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Gothic A1", serif;
+  background: linear-gradient(135deg, #3d231d 0%, #2b1815 65%, #f4a8b8 100%);
+  background-attachment: fixed;
+  color: #ffffff;
 }
