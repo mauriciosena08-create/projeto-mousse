@@ -88,13 +88,18 @@ export default function Carrinho() {
                     <>
                         <div className="flex flex-wrap justify-around w-full gap-4">
                             {carrinho.map((item: any) => (
-                                <Product
-                                    key={item.produto}
-                                    title={item.produto}
-                                    imageUrl={item.imagem || item.image || item.img}
-                                    description={`Quantidade: ${item.quant || item.quantidade}`}
-                                    inCart
-                                />
+                               <Product
+    key={item.produto}
+    title={item.produto}
+    {...({
+        imageUrl: item.imagem || item.image || item.img,
+        imagem: item.imagem || item.image || item.img,
+        image: item.imagem || item.image || item.img,
+        img: item.imagem || item.image || item.img,
+    } as any)}
+    description={`Quantidade: ${item.quant || item.quantidade}`}
+    inCart
+/>
                             ))}
                         </div>
 
