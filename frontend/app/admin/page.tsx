@@ -12,8 +12,10 @@ import api from "@/lib/api";
 
 type Pedido = {
   id: number;
-  produto: string;
+  produto?: string;
   data: string;
+  status?: string;
+  concluido?: boolean | number;
 };
 
 type Estoque = {
@@ -127,6 +129,18 @@ export default function AdminOuPerfil() {
     router.push("/login");
   };
 
+  // Filtra apenas os pedidos PENDENTES (não concluídos)
+  const pedidosPendentes = Array.isArray(pedidos)
+    ? pedidos.filter(
+        (p) =>
+          p.status !== "Concluído" &&
+          p.status !== "Concluido" &&
+          p.status !== "Entregue" &&
+          p.status !== "concluido" &&
+          !p.concluido
+      )
+    : [];
+
   const totalEstoque = Array.isArray(estoque)
     ? estoque.reduce((total, item) => {
         const qtd = item.quant ?? item.quantidade_disponivel ?? 0;
@@ -134,7 +148,7 @@ export default function AdminOuPerfil() {
       }, 0)
     : 0;
 
-  const totalPedidos = Array.isArray(pedidos) ? pedidos.length : 0;
+  const totalPedidos = pedidosPendentes.length;
 
   // VISÃO DE USUÁRIO COMUM / COMPRADOR
   if (!isAdmin) {
@@ -246,24 +260,24 @@ export default function AdminOuPerfil() {
         </form>
       </div>
 
-      {/* LISTA DE PEDIDOS */}
+      {/* LISTA DE PEDIDOS RECEBIDOS */}
       <div className="bg-purple-900/60 backdrop-blur-sm border border-purple-500/30 p-5 rounded-2xl shadow-lg">
         <h2 className="text-center font-bold text-lg mb-4 text-white">Pedidos Recebidos</h2>
 
         {loading ? (
           <p className="text-center opacity-70 text-white">Carregando pedidos...</p>
-        ) : !Array.isArray(pedidos) || pedidos.length === 0 ? (
-          <p className="text-center opacity-70 text-white">Nenhum pedido encontrado.</p>
+        ) : pedidosPendentes.length === 0 ? (
+          <p className="text-center opacity-70 text-white">Nenhum pedido pendente encontrado.</p>
         ) : (
           <div className="space-y-2">
-            {pedidos.map((pedido) => (
+            {pedidosPendentes.map((pedido) => (
               <Link
                 href={`/admin/pedidos/${pedido.id}`}
                 className="block p-3 rounded-xl bg-purple-950/60 hover:bg-purple-950 border border-purple-400/20 text-white transition"
                 key={pedido.id}
               >
                 <div className="flex justify-between items-center">
-                  <strong>{pedido.produto}</strong>
+                  <strong>{pedido.produto || `Pedido #${pedido.id}`}</strong>
                   <span className="text-xs opacity-70">{pedido.data}</span>
                 </div>
                 <small className="text-xs text-purple-200 block mt-1">Clique para ver detalhes...</small>
