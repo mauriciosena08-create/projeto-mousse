@@ -25,7 +25,7 @@ type Estoque = {
 };
 
 export default function AdminOuPerfil() {
-  const { perfil, setPerfil } = usePerfil();
+  const { perfil, definirPerfil } = usePerfil() as any;
   const router = useRouter();
 
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -39,7 +39,8 @@ export default function AdminOuPerfil() {
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
 
-  const isAdmin = perfil?.tipo === "admin";
+  const perfilQualquer = perfil as any;
+  const isAdmin = perfilQualquer?.tipo === "admin";
 
   const carregarDados = async () => {
     try {
@@ -88,24 +89,19 @@ export default function AdminOuPerfil() {
     try {
       setEnviando(true);
       setMensagem(null);
-      const API = api();
+      const API = api() as any;
 
-      // Envia os dados para a API do backend
-      if (typeof API.save_stock === "function") {
-        await API.save_stock({
-          produto: novoProduto,
-          quantidade_disponivel: novaQuantidade,
-          imagem: novaImagem,
-        });
+      // Chama o método add_stock existente na API
+      if (typeof API.add_stock === "function") {
+        await API.add_stock(novoProduto, novaQuantidade, novaImagem);
       } else {
-        // Fallback fetch direto caso o método no lib/api.ts tenha nome diferente
         const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://projeto-mousse.onrender.com";
-        await fetch(`${backendUrl}/save_stock.php`, {
+        await fetch(`${backendUrl}/add_stock.php`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             produto: novoProduto,
-            quantidade_disponivel: novaQuantidade,
+            quantidade: novaQuantidade,
             imagem: novaImagem,
           }),
         });
@@ -115,7 +111,7 @@ export default function AdminOuPerfil() {
       setNovoProduto("");
       setNovaQuantidade(1);
       setNovaImagem("");
-      carregarDados(); // Recarrega os totais e lista
+      carregarDados();
     } catch (err) {
       console.error("Erro ao adicionar estoque:", err);
       setMensagem("Erro ao salvar produto no estoque.");
@@ -125,8 +121,8 @@ export default function AdminOuPerfil() {
   };
 
   const sair = () => {
-    if (typeof setPerfil === "function") {
-      setPerfil(null);
+    if (typeof definirPerfil === "function") {
+      definirPerfil(null);
     }
     localStorage.removeItem("usuario");
     router.push("/login");
@@ -147,13 +143,13 @@ export default function AdminOuPerfil() {
       <div className={`${figmaStyles.adminContent} h-full mx-auto overflow-auto p-5 text-center text-white`}>
         <div className={figmaStyles.profileHead}>
           <FigmaUserIcon />
-          <span className="text-xl font-bold">{perfil?.nome || "Comprador"}</span>
+          <span className="text-xl font-bold">{perfilQualquer?.nome || "Comprador"}</span>
         </div>
 
         <FigmaCard className="mt-5 p-5">
           <h2 className="font-bold text-lg mb-2">Sua Conta</h2>
-          <p className="text-sm opacity-80">Curso: {perfil?.curso || "N/A"}</p>
-          <p className="text-sm opacity-80">Período: {perfil?.periodo || "N/A"}</p>
+          <p className="text-sm opacity-80">Curso: {perfilQualquer?.curso || "N/A"}</p>
+          <p className="text-sm opacity-80">Período: {perfilQualquer?.periodo || "N/A"}</p>
         </FigmaCard>
 
         <button onClick={sair} className={`${figmaStyles.button} mt-5 bg-red-600`}>
@@ -169,7 +165,7 @@ export default function AdminOuPerfil() {
       {/* PERFIL */}
       <div className={figmaStyles.profileHead}>
         <FigmaUserIcon />
-        <span>{perfil?.nome ? `${perfil.nome} (Admin)` : "Admin"}</span>
+        <span>{perfilQualquer?.nome ? `${perfilQualquer.nome} (Admin)` : "Admin"}</span>
       </div>
 
       {/* ESTATÍSTICAS */}
