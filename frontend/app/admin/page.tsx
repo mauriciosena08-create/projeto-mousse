@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import FigmaUserIcon from "@/components/FigmaUserIcon";
-import { FigmaCard, figmaStyles } from "@/components/FigmaPage";
+import { figmaStyles } from "@/components/FigmaPage";
 
 import { usePerfil } from "@/lib/atoms/perfilAtom";
 import api from "@/lib/api";
@@ -91,7 +91,6 @@ export default function AdminOuPerfil() {
       setMensagem(null);
       const API = api() as any;
 
-      // Chama o método add_stock existente na API
       if (typeof API.add_stock === "function") {
         await API.add_stock(novoProduto, novaQuantidade, novaImagem);
       } else {
@@ -146,13 +145,13 @@ export default function AdminOuPerfil() {
           <span className="text-xl font-bold">{perfilQualquer?.nome || "Comprador"}</span>
         </div>
 
-        <FigmaCard className="mt-5 p-5">
-          <h2 className="font-bold text-lg mb-2">Sua Conta</h2>
+        <div className="mt-5 p-5 bg-purple-900/60 backdrop-blur-sm border border-purple-500/30 rounded-2xl text-white">
+          <h2 className="font-bold text-lg mb-2 text-white">Sua Conta</h2>
           <p className="text-sm opacity-80">Curso: {perfilQualquer?.curso || "N/A"}</p>
           <p className="text-sm opacity-80">Período: {perfilQualquer?.periodo || "N/A"}</p>
-        </FigmaCard>
+        </div>
 
-        <button onClick={sair} className={`${figmaStyles.button} mt-5 bg-red-600`}>
+        <button onClick={sair} className="w-full mt-5 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl transition">
           Sair da Conta
         </button>
       </div>
@@ -161,68 +160,78 @@ export default function AdminOuPerfil() {
 
   // VISÃO DE ADMINISTRADOR
   return (
-    <div className={`${figmaStyles.adminContent} h-full mx-auto overflow-auto space-y-5 p-5`}>
+    <div className={`${figmaStyles.adminContent} max-w-md h-full mx-auto overflow-auto space-y-5 p-5 text-white`}>
       {/* PERFIL */}
-      <div className={figmaStyles.profileHead}>
+      <div className="flex items-center gap-3 justify-center mb-2">
         <FigmaUserIcon />
-        <span>{perfilQualquer?.nome ? `${perfilQualquer.nome} (Admin)` : "Admin"}</span>
+        <span className="text-xl font-bold text-white">
+          {perfilQualquer?.nome ? `${perfilQualquer.nome} (Admin)` : "Admin"}
+        </span>
       </div>
 
       {/* ESTATÍSTICAS */}
-      <div className={figmaStyles.adminStats}>
-        <div className={figmaStyles.adminStat}>
-          <label>N° de Pedidos:</label>
-          <input className={figmaStyles.input} value={loading ? "..." : totalPedidos} readOnly />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col items-center">
+          <label className="text-sm font-semibold mb-1 text-white">N° de Pedidos:</label>
+          <div className="w-full bg-purple-900/60 border border-purple-500/30 text-white font-bold text-center py-2 rounded-xl">
+            {loading ? "..." : totalPedidos}
+          </div>
         </div>
 
-        <div className={figmaStyles.adminStat}>
-          <label>Total em Estoque:</label>
-          <input className={figmaStyles.input} value={loading ? "..." : totalEstoque} readOnly />
+        <div className="flex flex-col items-center">
+          <label className="text-sm font-semibold mb-1 text-white">Total em Estoque:</label>
+          <div className="w-full bg-purple-900/60 border border-purple-500/30 text-white font-bold text-center py-2 rounded-xl">
+            {loading ? "..." : totalEstoque}
+          </div>
         </div>
       </div>
 
       {/* PAINEL: ADICIONAR AO ESTOQUE */}
-      <FigmaCard>
-        <h2 className="text-center font-bold text-lg mb-4 text-white">Adicionar Produto ao Estoque</h2>
-        
+      <div className="bg-purple-900/60 backdrop-blur-sm border border-purple-500/30 p-5 rounded-2xl shadow-lg">
+        <h2 className="text-center font-bold text-lg mb-4 text-white">
+          Adicionar Produto ao Estoque
+        </h2>
+
         {mensagem && (
           <p className="text-center text-sm mb-3 text-green-400 font-bold">{mensagem}</p>
         )}
 
         <form onSubmit={handleAdicionarEstoque} className="space-y-3">
           <div>
-            <label className="block text-xs text-white mb-1">Nome do Doce/Produto</label>
+            <label className="block text-xs font-medium text-white mb-1">
+              Nome do Doce/Produto
+            </label>
             <input
               type="text"
               placeholder="Ex: Mousse de Morango"
               value={novoProduto}
               onChange={(e) => setNovoProduto(e.target.value)}
-              className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-700 text-sm"
+              className="w-full p-2 rounded-lg bg-purple-950/80 text-white placeholder-purple-300/50 border border-purple-400/30 text-sm focus:outline-none focus:border-purple-400"
               required
             />
           </div>
 
           <div className="flex gap-3">
             <div className="w-1/2">
-              <label className="block text-xs text-white mb-1">Quantidade</label>
+              <label className="block text-xs font-medium text-white mb-1">Quantidade</label>
               <input
                 type="number"
                 min="1"
                 value={novaQuantidade}
                 onChange={(e) => setNovaQuantidade(Number(e.target.value))}
-                className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-700 text-sm"
+                className="w-full p-2 rounded-lg bg-purple-950/80 text-white border border-purple-400/30 text-sm focus:outline-none focus:border-purple-400"
                 required
               />
             </div>
 
             <div className="w-1/2">
-              <label className="block text-xs text-white mb-1">URL da Imagem (Opcional)</label>
+              <label className="block text-xs font-medium text-white mb-1">URL da Imagem (Opcional)</label>
               <input
                 type="text"
                 placeholder="https://..."
                 value={novaImagem}
                 onChange={(e) => setNovaImagem(e.target.value)}
-                className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-700 text-sm"
+                className="w-full p-2 rounded-lg bg-purple-950/80 text-white placeholder-purple-300/50 border border-purple-400/30 text-sm focus:outline-none focus:border-purple-400"
               />
             </div>
           </div>
@@ -230,40 +239,45 @@ export default function AdminOuPerfil() {
           <button
             type="submit"
             disabled={enviando}
-            className="w-full py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-sm disabled:opacity-50"
+            className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-sm mt-2 disabled:opacity-50 shadow-md"
           >
             {enviando ? "Salvando..." : "+ Cadastrar no Estoque"}
           </button>
         </form>
-      </FigmaCard>
+      </div>
 
       {/* LISTA DE PEDIDOS */}
-      <FigmaCard>
+      <div className="bg-purple-900/60 backdrop-blur-sm border border-purple-500/30 p-5 rounded-2xl shadow-lg">
         <h2 className="text-center font-bold text-lg mb-4 text-white">Pedidos Recebidos</h2>
 
         {loading ? (
-          <p className="text-center opacity-60 text-white">Carregando pedidos...</p>
+          <p className="text-center opacity-70 text-white">Carregando pedidos...</p>
         ) : !Array.isArray(pedidos) || pedidos.length === 0 ? (
-          <p className="text-center opacity-60 text-white">Nenhum pedido encontrado.</p>
+          <p className="text-center opacity-70 text-white">Nenhum pedido encontrado.</p>
         ) : (
           <div className="space-y-2">
             {pedidos.map((pedido) => (
               <Link
                 href={`/admin/pedidos/${pedido.id}`}
-                className={`${figmaStyles.orderItem} block`}
+                className="block p-3 rounded-xl bg-purple-950/60 hover:bg-purple-950 border border-purple-400/20 text-white transition"
                 key={pedido.id}
               >
-                <strong>{pedido.produto}</strong>
-                <small>Clique para ver detalhes...</small>
-                <span className={figmaStyles.orderDate}>{pedido.data}</span>
+                <div className="flex justify-between items-center">
+                  <strong>{pedido.produto}</strong>
+                  <span className="text-xs opacity-70">{pedido.data}</span>
+                </div>
+                <small className="text-xs text-purple-200 block mt-1">Clique para ver detalhes...</small>
               </Link>
             ))}
           </div>
         )}
-      </FigmaCard>
+      </div>
 
       {/* SAIR */}
-      <button onClick={sair} className={`${figmaStyles.button} mt-5 bg-red-600 text-white w-full py-2 rounded-xl`}>
+      <button
+        onClick={sair}
+        className="w-full bg-purple-900/60 hover:bg-red-600 border border-purple-500/30 text-white py-3 rounded-2xl font-bold transition shadow-md"
+      >
         Sair
       </button>
     </div>
