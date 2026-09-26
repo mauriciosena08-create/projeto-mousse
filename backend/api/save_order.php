@@ -38,9 +38,10 @@ try {
     $status = 'Pendente';
     $dataHora = date('Y-m-d H:i:s');
 
+    // Inserção ajustada para corresponder exatamente às colunas da nova tabela 'pedidos'
     execute_turso_query(
-        "INSERT INTO pedidos (cliente, usuario_id, itens, total, status, data) VALUES (?, ?, ?, ?, ?, ?)",
-        [$cliente, $cliente, $itensJson, $total, $status, $dataHora]
+        "INSERT INTO pedidos (cliente, itens, total, status, data) VALUES (?, ?, ?, ?, ?)",
+        [$cliente, $itensJson, $total, $status, $dataHora]
     );
 
     if (is_array($itensArray)) {
