@@ -78,30 +78,31 @@ export default function DetalhesPedidoAdmin({ params }: { params: Promise<{ id: 
         }
     };
 
-    // Função para tratar fuso horário (UTC -> UTC-3 Horário de Brasília)
+    // Função para formatar a data exatamente como gravada no banco
     const formatarData = (dataRaw?: string) => {
         if (!dataRaw) return "N/A";
-        try {
-            // Trata strings de data vindas do PHP (YYYY-MM-DD HH:MM:SS) ou ISO
-            const strFormatada = dataRaw.includes("T")
-                ? dataRaw
-                : dataRaw.replace(" ", "T") + "-03:00";
 
-            const date = new Date(strFormatada);
-            if (isNaN(date.getTime())) return dataRaw;
-
-            return date.toLocaleString("pt-BR", {
-                timeZone: "America/Sao_Paulo",
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-            });
-        } catch (e) {
-            return dataRaw;
+        // Formato SQL "YYYY-MM-DD HH:MM:SS"
+        const partes = dataRaw.split(" ");
+        if (partes.length === 2) {
+            const [data, hora] = partes;
+            const [ano, mes, dia] = data.split("-");
+            if (ano && mes && dia) {
+                return `${dia}/${mes}/${ano}, ${hora}`;
+            }
         }
+
+        // Formato ISO "YYYY-MM-DDTHH:MM:SS"
+        if (dataRaw.includes("T")) {
+            const [data, horaComResto] = dataRaw.split("T");
+            const hora = horaComResto.substring(0, 8);
+            const [ano, mes, dia] = data.split("-");
+            if (ano && mes && dia) {
+                return `${dia}/${mes}/${ano}, ${hora}`;
+            }
+        }
+
+        return dataRaw;
     };
 
     // 1. Extração do nome do cliente em todas as chaves possíveis do DB
