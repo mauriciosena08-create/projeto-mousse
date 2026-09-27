@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Gothic_A1 } from "next/font/google";
 
 import "./globals.css";
@@ -23,11 +23,21 @@ const GothicA1 = Gothic_A1({
 });
 
 export const metadata: Metadata = {
-  title: "Infodoces — O mais gostosos do IF",
+  title: "Infodoces — O mais gostoso do IF",
   description: "Bateu aquela fome entre uma aula e outra? A Infodoces chegou pra salvar! 😎",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "InfoDoces",
+  },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export const viewport: Viewport = {
+  themeColor: "#f4a8b8",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="pt-BR"
